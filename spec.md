@@ -1,12 +1,14 @@
-# Dàn ý bài nộp *(spec.md — nộp trước 23:59 ngày lab của lớp)*
+# Bài nộp LAB5 — T1 Y tế · Nhóm [Điền tên nhóm]
 
-> Copy dàn ý này vào `spec.md` của nhóm. Đây **không** phải form để điền đủ ô: mỗi mục chỉ cần đủ **bằng chứng** và **lập luận** ghi bên dưới. Viết ngắn, gạch đầu dòng là được. Hướng dẫn từng chặng: `02-guide.md`. Cách chấm: `04-rubric.md`.
->
-> **Một quyết định = bốn ý:** đã cân nhắc phương án nào · chọn phương án nào · vì sao · loại các phương án kia vì sao. Bằng chứng = lập luận trỏ về một chỗ cụ thể: tool nào, dòng dữ liệu nào của track, điều gì trong mục "Sản phẩm thật hôm nay", chỗ nào trên prototype (ảnh đánh số). Không chạy agent.
+**Lớp:** L3B · **Bàn / zone:** [Điền] · **Track:** T1 — Y tế
 
-```markdown
-# Bài nộp LAB5 — [Track] · Nhóm [tên]
-[Danh sách thành viên và việc mỗi người làm — copy bảng từ README]
+| Họ và Tên | Mã Học Viên | Việc đã làm |
+|---|---|---|
+| [Điền TV1] | [Điền] | [VD: Kịch bản rủi ro & lập luận UX khi AI sai] |
+| [Điền TV2] | [Điền] | [VD: Mức tự chủ, bảng tool & tiêu chí Pass/Fail] |
+| [Điền TV3] | [Điền] | [VD: Dựng prototype HTML & kịch bản demo] |
+
+---
 
 ## §1. Lát cắt & phạm vi
 
@@ -45,72 +47,114 @@
   2. **Kịch bản #7 (*Khách gắt: "Ai cũng được, cứ ship đi, đừng hỏi nữa"*):** Đại diện cho bẫy tương tác đời thật: khách cố tình từ chối cung cấp thông tin an toàn và gây áp lực để AI chiều ý. Nếu UX chỉ nhắc bằng chữ mà không khóa cơ chế đặt hàng, AI dễ nhượng bộ gọi `goi_y_san_pham` gây ngộ độc/uống nhầm thuốc không đảo được.
 - **Kịch bản SUÝT ĐƯỢC CHỌN (hạng 3) & vì sao loại:** **Kịch bản #6 (*Bố tự dưng yếu nửa người*)**. Rất nguy hiểm về sinh mạng, nhưng về mặt thiết kế UX nó cùng nhóm xử lý *"phát hiện dấu hiệu đỏ → `khuyen_di_kham` + `URGENT` lập tức"* với Kịch bản #5 — và còn dễ hơn #5 vì dấu hiệu đỏ đã nằm sẵn trong tin nhắn, còn #5 phải tự phát hiện. Giữ cặp (#5 + #7) giúp thiết kế bao phủ cả 2 cực khó: **cấp cứu trẻ nhỏ ngụy trang** và **khách gây áp lực ép AI phá ranh giới**.
 
+---
+
 ## §3. Khi AI sai (cho 2 kịch bản đắt nhất)
 
 ### Kịch bản #5: *"Con tôi nôn ói, đi ngoài 2 ngày nay, cho tôi thuốc"*
 - **Quyết định hướng xử lý:** **Dừng gợi ý thuốc + Hỏi 1 câu red-flag + Đẩy ưu tiên `chuyen_duoc_si` / `khuyen_di_kham` ngay.**
-  - *Đã cân nhắc & vì sao loại:* (1) *Tự trả lời kèm giới hạn (gợi ý tạm Oresol/men vi sinh)* → Loại vì trẻ nhỏ là đối tượng nhạy cảm, chưa biết tuổi và mức độ mất nước nặng hay nhẹ, giao nút mua tạo cảm giác "đã có thuốc xử lý" làm phụ huynh trì hoãn đi viện. (2) *Hỏi đầy đủ 5–6 câu sàng lọc rồi mới chuyển* → Loại vì trẻ nôn ói 2 ngày lúc đêm cần xử lý khẩn, hỏi nhiều làm mất thời gian vàng.
+  - *Đã cân nhắc & vì sao loại:* (1) *Tự trả lời kèm giới hạn (gợi ý tạm Oresol/men vi sinh)* → Loại vì trẻ nhỏ là đối tượng nhạy cảm, chưa biết tuổi và mức độ mất nước nặng hay nhẹ, giao nút mua tạo cảm giác "đã có thuốc xử lý" làm phụ huynh trì hoãn đi viện. (2) *Hỏi đầy đủ S1–S4 rồi mới chuyển* → Loại vì trẻ nôn ói 2 ngày lúc đêm cần xử lý khẩn, hỏi nhiều làm mất thời gian vàng. (3) *Chuyển dược sĩ ngay, không hỏi gì* → Loại vì nếu bé đã có dấu hiệu nặng thì việc đúng là đi viện ngay, không phải chờ dược sĩ nhắn lại; 1 câu red-flag tách được 2 nhánh này.
 - **Câu AI nói nguyên văn:**
-  > *"Mình là Trợ lý AI Pharmacity (không thay thế bác sĩ/dược sĩ). Vì bé đã nôn ói, tiêu chảy 2 ngày có nguy cơ mất nước nên mình **không tự gợi ý thuốc ngay**. Bạn xem nhanh giúp mình: bé có dấu hiệu nào sau đây không — **lừ đừ khó đánh thức, môi khô/khóc không ra nước mắt, không uống được nước, sốt cao, hoặc phân có máu**?"*
+  > *"Mình là Trợ lý AI Pharmacity (không thay thế bác sĩ/dược sĩ). Vì bé đã nôn ói, tiêu chảy 2 ngày có nguy cơ mất nước nên mình **không tự gợi ý thuốc**, và đã báo Dược sĩ trực ưu tiên ca của bạn. Bạn xem nhanh giúp mình: bé có dấu hiệu nào sau đây không — **bé dưới 6 tháng tuổi, lừ đừ khó đánh thức, môi khô/khóc không ra nước mắt, không uống được nước, sốt cao, hoặc phân có máu**?"*
 - **Người dùng thấy gì trên màn hình:**
   - Nhãn `G1`: *"Trợ lý AI — Hỗ trợ sàng lọc, không kê đơn/chẩn đoán"*.
-  - 2 nút bấm nhanh: **`[Có các dấu hiệu trên — Xem hướng dẫn đi khám ngay]`** (đỏ) và **`[Chưa thấy dấu hiệu trên — Kết nối Dược sĩ ƯU TIÊN ngay]`**.
-  - Hộp bằng chứng/trạng thái: *"Chưa đủ dữ liệu an toàn (thiếu: tuổi bé, dấu hiệu mất nước) → Đã khóa nút đặt thuốc"*.
-- **Bước tiếp theo & ai được báo:**
-  - Nếu bấm **Có dấu hiệu** → gọi ngay `khuyen_di_kham` (khuyên đưa đi viện/gọi 115 ngay, không chờ) **đồng thời** đẩy phiên vào đầu hàng chờ `chuyen_duoc_si` gắn cờ `URGENT`.
-  - Nếu bấm **Chưa thấy** hoặc **khách không phản hồi (ca cấp cứu không chờ lâu)** → **tự động chuyển ngay** sang dược sĩ trực ở vị trí `URGENT` (cảnh báo đỏ trên màn hình dược sĩ kèm tóm tắt *"Trẻ nhỏ nôn ói/tiêu chảy 2 ngày — ưu tiên xử lý ngay"*).
-- **Loại lỗi:** **Lỗi ngữ cảnh (*Context Error*)**. AI làm đúng quy trình hỏi thông tin thông thường nhưng đặt vào tình huống trẻ nhỏ có nguy cơ mất nước lúc nửa đêm thì hỏi tuần tự nhiều bước là thất bại. Phải sửa bằng **luồng rút gọn 1 câu red-flag + tự động ưu tiên hàng chờ**.
+  - 2 nút bấm nhanh: **`[Có ít nhất 1 dấu hiệu trên]`** (đỏ) và **`[Chưa thấy dấu hiệu nào]`**.
+  - Hộp bằng chứng/trạng thái: *"Đã biết: trẻ nhỏ, nôn ói + tiêu chảy 2 ngày · Còn thiếu: tuổi bé, dấu hiệu mất nước → Không hiện gợi ý sản phẩm; đã báo Dược sĩ mức URGENT"*.
+- **Bước tiếp theo & ai được báo, sau bao lâu:**
+  - **Giây 0 (ngay khi phát hiện "con tôi" + nôn ói/tiêu chảy):** AI tạo sẵn phiếu `chuyen_duoc_si` mức `URGENT` ở **đầu hàng chờ** với trạng thái *"Đang hỏi red-flag"* → dược sĩ trực thấy ngay, không đợi khách trả lời.
+  - Nếu bấm **Có dấu hiệu** → gọi ngay `khuyen_di_kham`: thẻ đỏ *"Đưa bé tới cơ sở y tế gần nhất hoặc gọi 115 ngay"* kèm nút **`[Gọi 115]`** và **`[Tôi đã hiểu]`** (không chặn chat); phiếu dược sĩ đổi trạng thái *"Đã cảnh báo đi khám — gọi lại xác nhận"*.
+  - Nếu bấm **Chưa thấy** → kết nối hẳn dược sĩ trực (phiếu `URGENT`, tóm tắt *"Trẻ nhỏ nôn ói/tiêu chảy 2 ngày, chưa có red-flag theo khách, chưa rõ tuổi"*); khách thấy *"Dược sĩ đang vào ca của bạn"*.
+  - Nếu khách **không phản hồi sau 60 giây** → phiếu tự đổi trạng thái *"Khách im lặng — cần dược sĩ chủ động gọi/nhắn"* và hiện cảnh báo đỏ trên màn hình dược sĩ; phía khách hiện sẵn thẻ `khuyen_di_kham` (vì không loại trừ được dấu hiệu nặng).
+- **Loại lỗi:** **Lỗi ngữ cảnh (*Context Error*)**. AI làm đúng quy trình hỏi đủ S1–S4 thông thường nhưng đặt vào tình huống trẻ nhỏ có nguy cơ mất nước lúc nửa đêm thì hỏi tuần tự nhiều bước là thất bại. Phải sửa bằng **luồng rút gọn 1 câu red-flag + báo dược sĩ URGENT từ giây 0**.
 
 ### Kịch bản #7: *"Ai cũng được, cứ ship đi, đừng hỏi nữa!"*
-- **Quyết định hướng xử lý:** **Dừng gợi ý + Xoa dịu nêu lý do + Hiện nút chuyển dược sĩ (`chuyen_duoc_si`).**
-  - *Đã cân nhắc & vì sao loại:* (1) *Tiếp tục gặng hỏi lại danh sách câu hỏi* → Loại vì làm khách bực hơn và bỏ đi mua liều bên ngoài. (2) *Chiều khách gợi ý đại thuốc cảm phổ thông* → Loại vì vi phạm an toàn tối đa (có thể khách mua cho trẻ em, bà bầu hoặc người cao huyết áp).
+- **Quyết định hướng xử lý:** **Dừng gợi ý + Xoa dịu nêu lý do + Hiện nút chuyển dược sĩ (`chuyen_duoc_si`) + 1 nút bổ sung nhanh.**
+  - *Đã cân nhắc & vì sao loại:* (1) *Tiếp tục gặng hỏi lại danh sách câu hỏi* → Loại vì làm khách bực hơn và bỏ đi mua liều bên ngoài. (2) *Chiều khách gợi ý đại thuốc cảm phổ thông* → Loại vì vi phạm an toàn tối đa (có thể khách mua cho trẻ em, bà bầu hoặc người cao huyết áp). (3) *Từ chối và kết thúc hội thoại* → Loại vì khách không có lối đi tiếp, dễ ra ngoài mua đại.
 - **Câu AI nói nguyên văn:**
-  > *"Mình hiểu bạn đang cần thuốc gấp, nhưng vì thuốc cảm có hoạt chất chống chỉ định với trẻ nhỏ, phụ nữ mang thai hoặc người huyết áp cao nên **mình bắt buộc phải khóa tính năng gợi ý tự động khi chưa rõ người dùng**. Bạn bấm nút bên dưới để **gặp Dược sĩ trực ngay** (hoặc nhắn nhanh 'người lớn khỏe mạnh' nếu đúng vậy để mình hỗ trợ tiếp nhé)."*
+  > *"Mình hiểu bạn đang cần thuốc gấp. Thuốc cảm có hoạt chất không dùng được cho trẻ nhỏ, phụ nữ mang thai hoặc người huyết áp cao, nên **mình chưa thể gợi ý sản phẩm khi chưa rõ người dùng**. Bạn có 2 cách nhanh: bấm **Gặp Dược sĩ trực ngay**, hoặc nếu người uống là người lớn khỏe mạnh thì bấm nút xác nhận nhanh bên dưới (1 chạm) để mình hỗ trợ tiếp nhé."*
 - **Người dùng thấy gì trên màn hình:**
-  - Thẻ sản phẩm/nút đặt bị **khóa cứng (disabled)** kèm dòng giải thích *"Thiếu dữ kiện bắt buộc: Đối tượng dùng thuốc, Dị ứng, Thuốc đang dùng"*.
-  - 2 lối thoát rõ ràng: Nút **`[Chuyển Dược sĩ trực ngay]`** và 1 nút sửa nhanh **`[Bổ sung nhanh người dùng thuốc]`**.
-- **Bước tiếp theo & ai được báo:**
-  - Nếu khách bấm chuyển → `chuyen_duoc_si` (mức `Normal`, kèm log khách đang vội/gắt).
-  - Nếu khách **im lặng/treo máy**: hệ thống nhắn nhắc nhẹ theo mốc **2 phút → 4 phút → 8 phút**; sau mốc 8 phút không phản hồi → đóng trạng thái chờ, **ghi log và báo admin/dược sĩ** là khách đã rời hội thoại khi chưa hoàn tất sàng lọc.
+  - Thẻ gợi ý ở trạng thái **khóa cứng, không ghi tên sản phẩm nào** (chưa đủ dữ kiện thì chưa chọn được sản phẩm), kèm dòng *"Đang khóa — thiếu: S1 người dùng thuốc, S2 mang thai/cho con bú, S3 dị ứng, S4 thuốc đang dùng/bệnh nền"*.
+  - 2 lối thoát rõ ràng: Nút **`[Chuyển Dược sĩ trực ngay]`** và nút **`[Xác nhận nhanh: Người lớn, không mang thai, không dị ứng, không dùng thuốc/bệnh nền khác]`** (bấm vào là điền đủ S1–S4; nếu không đúng, khách chọn "Khác" để mở form chọn nhanh từng trường).
+- **Bước tiếp theo & ai được báo, sau bao lâu:**
+  - Nếu bấm **Xác nhận nhanh** → đủ S1–S4, không thuộc nhóm nhạy cảm → AI mở thẻ OTC `goi_y_san_pham` có nút **`[Đặt]`**; sau khi đặt có nút **`[Hoàn tác / Hủy đơn]`** đến lúc đơn được đóng gói. Không ai cần được báo.
+  - Nếu bấm **Chuyển dược sĩ** → `chuyen_duoc_si` mức `Normal`, kèm ghi chú *"Khách đang vội, đã từ chối sàng lọc"* để dược sĩ không hỏi lại từ đầu. Khách có nút **`[Hủy chuyển, quay lại chat]`**.
+  - Nếu khách **im lặng**: hệ thống nhắn nhắc nhẹ theo mốc **2 phút → 4 phút → 8 phút**; sau mốc 8 phút không phản hồi → đóng phiên chờ, **ghi log và báo dược sĩ trực** *"Khách đã rời hội thoại khi chưa hoàn tất sàng lọc"* (để dược sĩ quyết định có nhắn lại không).
 - **Loại lỗi:** **Lỗi người dùng + Lỗi ngữ cảnh**. Khách cố tình bỏ qua bước sàng lọc trong trạng thái vội/cáu gắt. Chỉ xin lỗi hay đổi giọng điệu không giải quyết được mà cần **rào cản cứng ở UI**.
 
 ### Tổng kết nguyên tắc & lỗi thiết kế (§3)
-- **Lỗi sửa câu chữ không cứu được & cách thiết kế cứu:** Dù câu chữ AI khéo đến đâu, nếu giao diện vẫn hiển thị nút *"Đặt mua ngay"* hoặc đẩy ca trẻ nhỏ vào hàng chờ FIFO thông thường thì khách vẫn bấm mua nhầm / ca nặng vẫn bị kẹt sau hàng trăm ca hỏi giá. **Thiết kế cứu bằng 2 cơ chế cứng:** (1) **UI Lock** — nút đặt hàng chỉ mở khóa khi đủ các trường sàng lọc an toàn; (2) **Priority Routing (`URGENT`)** — ca có trẻ nhỏ/bầu/red-flag luôn nhảy lên đầu hàng chờ dược sĩ.
+- **Loại lỗi quyết định cách nói & cách sửa:**
+
+| Loại lỗi | Ví dụ trong bài | Cách AI nói | Cách sửa |
+|---|---|---|---|
+| **Hệ thống** (AI/dữ liệu sai) | #1 AI bịa "chi nhánh còn hàng" | Nhận lỗi, xin lỗi rõ, nói giới hạn: *"Mình không tra được tồn kho chi nhánh"* | Sửa hệ thống: cấm AI trả lời tồn kho khi không có tool; đưa link tra cứu |
+| **Người dùng** (khách bỏ qua/nhập thiếu) | #7 khách từ chối sàng lọc | Không xin lỗi, không trách khách; giải thích *vì sao* cần thông tin + đưa lối đi 1 chạm | Rào cứng ở UI (khóa nút đặt) + giảm ma sát (xác nhận nhanh 1 chạm) |
+| **Ngữ cảnh** (hệ thống chạy đúng thiết kế nhưng sai tình huống) | #5 hỏi đủ S1–S4 với ca trẻ mất nước lúc nửa đêm | Ngắn, nói thẳng việc đã làm: *"đã báo Dược sĩ ưu tiên"* | Sửa luồng: đường tắt red-flag + URGENT từ giây 0 |
+
+- **Lỗi sửa câu chữ không cứu được & cách thiết kế cứu:** Dù câu chữ AI khéo đến đâu, nếu giao diện vẫn hiển thị nút *"Đặt mua ngay"* hoặc đẩy ca trẻ nhỏ vào hàng chờ FIFO thông thường thì khách vẫn bấm mua nhầm / ca nặng vẫn bị kẹt sau hàng trăm ca hỏi giá. **Thiết kế cứu bằng 2 cơ chế cứng:** (1) **UI Lock** — nút đặt hàng chỉ mở khóa khi đủ S1–S4 và không thuộc nhóm nhạy cảm, luật này chạy bằng code chứ không phụ thuộc câu AI nói; (2) **Priority Routing (`URGENT`)** — ca có trẻ nhỏ/bầu/red-flag luôn nhảy lên đầu hàng chờ dược sĩ.
 - **3 nguyên tắc HAX/PAIR trỏ vào chỗ cụ thể:**
-  1. **G1 (Làm rõ hệ thống làm được gì — khớp Điều 11 Luật AI 134/2025/QH15):** Thanh header + mở đầu câu thoại luôn gắn nhãn *"Trợ lý AI Pharmacity — Sàng lọc ban đầu, không kê đơn/chẩn đoán"*.
-  2. **G10 (Thu hẹp phạm vi khi nghi ngờ):** Khi thiếu thông tin sàng lọc hoặc gặp đối tượng nhạy cảm, AI khóa nút `goi_y_san_pham` và thu hẹp về đúng 1 câu red-flag hoặc chuyển `chuyen_duoc_si`.
-  3. **G11 + PAIR Explainability (Giải thích vì sao & bằng chứng để tự kiểm):** Hộp **"AI đang căn cứ vào đâu"** hiển thị rõ dữ kiện *đã biết* (VD: nôn ói 2 ngày) vs *còn thiếu* (VD: tuổi bé, dị ứng) để khách và dược sĩ thấy ngay lý do AI dừng hoặc chuyển.
+  1. **G1 (Làm rõ hệ thống làm được gì — khớp Điều 11 khoản 1 Luật AI 134/2025/QH15):** Thanh header + mở đầu câu thoại luôn gắn nhãn *"Trợ lý AI Pharmacity — Sàng lọc ban đầu, không kê đơn/chẩn đoán"* (câu mở đầu ở #5).
+  2. **G10 (Thu hẹp phạm vi khi nghi ngờ):** Khi thiếu S1–S4 hoặc gặp nhóm nhạy cảm, AI khóa nút đặt của `goi_y_san_pham` và thu hẹp về đúng 1 câu red-flag (#5) hoặc 1 nút xác nhận nhanh / chuyển `chuyen_duoc_si` (#7).
+  3. **G11 + PAIR Explainability (Giải thích vì sao & bằng chứng để tự kiểm):** Hộp **"AI đang căn cứ vào đâu"** hiển thị rõ dữ kiện *đã biết* (VD: nôn ói 2 ngày) vs *còn thiếu* (VD: tuổi bé, dị ứng) để khách và dược sĩ thấy ngay lý do AI dừng hoặc chuyển; dòng *"Đang khóa — thiếu: …"* trên thẻ gợi ý ở #7.
 
 ---
 
 ## §4. Mức tự chủ (theo Cost-of-Error)
 
-| Tool | Mức của nhóm | Ai duyệt & quá hạn thì sao | Lý do theo Cost-of-Error (Sai ai chịu · Đảo được không · Chờ mất gì) | Phương án đã cân nhắc & vì sao loại |
+| Tool | Mức của nhóm | Ai duyệt · người duyệt thấy gì · quá hạn thì sao | Lý do theo Cost-of-Error (Sai ai chịu · Đảo được không · Chờ mất gì) | Phương án đã cân nhắc & vì sao loại |
 |---|---|---|---|---|
-| `ban_thuoc_ke_don` | **Cấm** | Không áp dụng (khóa vĩnh viễn trên UI) | Sai: khách uống sai kháng sinh/thuốc đặc trị gây sốc/kháng thuốc, vi phạm pháp luật; **không đảo được**; bước xác nhận của khách không đủ chặn. | Loại *Cần người duyệt* vì AI không có quyền bán thuốc kê đơn qua chat tự động. |
-| `khuyen_di_kham` | **Tự làm** | AI hiện ngay; khách tự chọn hành động tiếp | Nếu chờ dược sĩ duyệt mới hiện cảnh báo cấp cứu → mất thời gian vàng tính mạng (đột quỵ, mất nước nặng). Hiện thừa chỉ khiến khách cân nhắc thêm vài giây; khách có quyền bấm chuyển dược sĩ nếu chưa đi ngay. | Loại *Cần người duyệt* vì độ trễ người duyệt có thể gây tử vong. |
-| `chuyen_duoc_si` | **Tự làm** *(kèm phân luồng `URGENT` / `Normal`)* | AI tự đẩy; dược sĩ trực nhận theo độ ưu tiên | Chờ duyệt mới chuyển làm chậm ca rủi ro. Sai (chuyển nhầm ca nhẹ) đảo được nhưng gây nghẽn hàng chờ → xử lý bằng gắn nhãn `URGENT` vs `Normal`. | Loại *Cần khách/admin duyệt* vì tăng ma sát đúng lúc khách đang hoảng. |
-| `luu_ghi_chu_suc_khoe` | **Cần người duyệt** *(Khách bấm Đồng ý)* | Khách bấm *"Cho phép lưu"* cuối phiên; quá hạn/không bấm → **không lưu** | Lưu ngầm thông tin nhạy cảm (mang thai, bệnh nền) gây rủi ro lộ dữ liệu y tế; chờ khách bấm tốn 1 giây, không gây hại sức khỏe. Có nút Hoàn tác/Xoá ngay. | Loại *Tự làm* vì vi phạm quyền riêng tư và quy tắc track T1. |
-| `goi_y_san_pham` *(Tách điều kiện)* | **Tách 2 mức:** <br>• **Cần dược sĩ duyệt (Khóa nút đặt)** nếu thiếu sàng lọc hoặc trẻ nhỏ/bầu/bệnh nền.<br>• **Tự làm + Hoàn tác** chỉ với OTC phổ thông khi đủ checklist an toàn. | Dược sĩ duyệt ca nhạy cảm; nếu không kịp sau 2 phút báo hàng chờ ưu tiên. Với ca OTC đủ điều kiện: khách có nút Gỡ/Hoàn tác trên thẻ sản phẩm. | Gợi ý sai cho trẻ nhỏ/bầu gây hại sức khỏe **không đảo được** khi đã uống; nhưng bắt dược sĩ duyệt cả hộp C sủi làm khách đêm chờ vô ích và bỏ chat. | Loại *Tự làm toàn bộ* (gây hại Ca #5, #7) và loại *Cần dược sĩ duyệt toàn bộ* (gây tắc Ca #9 C sủi). |
+| `ban_thuoc_ke_don` | **Cấm** | Không áp dụng — không có nút nào gọi tool này trên UI | Sai: khách uống sai kháng sinh/thuốc đặc trị gây sốc/kháng thuốc, vi phạm pháp luật; **không đảo được**; bước xác nhận của khách không đủ chặn. | Loại *Cần người duyệt* vì bán thuốc kê đơn cần đơn của bác sĩ và kiểm tra tại quầy, không phải việc của chat tự động. |
+| `khuyen_di_kham` | **Tự làm** *(có đường lui: khách bấm `[Tôi đã hiểu]` để đóng)* | AI hiện ngay; khách tự chọn hành động tiếp | Hiện thừa: khách mất vài giây cân nhắc, bấm đóng được (track: "khách bỏ qua được"). Chờ dược sĩ duyệt mới hiện cảnh báo cấp cứu → mất thời gian vàng (đột quỵ #6, mất nước nặng #5). | Loại *Cần người duyệt* vì độ trễ người duyệt có thể gây tử vong. |
+| `chuyen_duoc_si` | **Tự làm** *(kèm phân luồng `URGENT` / `Normal`)* | AI tự đẩy; dược sĩ trực nhận theo độ ưu tiên, thấy phiếu tóm tắt (đối tượng, triệu chứng, S1–S4 đã biết/còn thiếu). Ca `Normal` khách có nút `[Hủy chuyển]` | Chuyển nhầm ca nhẹ: đảo được, tốn vài phút của dược sĩ → giảm bằng nhãn `URGENT` vs `Normal`. Chờ duyệt mới chuyển làm chậm đúng những ca rủi ro nhất. | Loại *Cần khách/admin duyệt* vì tăng ma sát đúng lúc khách đang hoảng. |
+| `luu_ghi_chu_suc_khoe` | **Cần người duyệt** *(khách bấm Đồng ý)* | **Khách** duyệt; thấy đúng nội dung sẽ lưu (VD: *"Dị ứng penicillin · đang dùng ARV"*) + 2 nút `[Đồng ý lưu]` / `[Không lưu]`. Quá hạn/không bấm → **không lưu**. Đã lưu vẫn có `[Hoàn tác (Xóa ghi chú)]` | Lưu ngầm thông tin nhạy cảm (mang thai, HIV, bệnh nền) gây rủi ro lộ dữ liệu y tế — xóa được nhưng đã lộ. Chờ khách bấm tốn 1 giây, không gây hại sức khỏe. | Loại *Tự làm* vì vi phạm quyền riêng tư và rule 7 của track T1. Loại *Cấm* vì ghi chú giúp dược sĩ lần sau không hỏi lại dị ứng. |
+| `goi_y_san_pham` *(tách theo điều kiện)* | **3 nhánh theo S1–S4:**<br>• **Tự làm + Hoàn tác:** OTC phổ thông khi đủ S1–S4 và không thuộc nhóm nhạy cảm.<br>• **Khóa nút đặt, chờ bổ sung:** thiếu ≥1 trường S1–S4 → thẻ khóa, không tên sản phẩm.<br>• **AI không gợi ý — dược sĩ gợi ý:** nhóm nhạy cảm hoặc có red-flag. | Nhánh 1: không cần duyệt; khách có `[Hoàn tác / Hủy đơn]` đến lúc đơn được đóng gói.<br>Nhánh 2: **khách** tự mở khóa bằng cách bổ sung S1–S4; không bao giờ tự mở theo thời gian.<br>Nhánh 3: **dược sĩ** thấy phiếu tóm tắt và tự gợi ý; quá 5 phút chưa tiếp nhận → khách thấy vị trí trong hàng chờ + dấu hiệu nào cần đi khám ngay; nút đặt vẫn khóa. | Gợi ý sai cho trẻ nhỏ/bầu gây hại sức khỏe **không đảo được** khi đã uống; nhưng bắt dược sĩ duyệt cả hộp C sủi làm khách đêm chờ vô ích và bỏ chat, đồng thời làm nghẽn hàng chờ của ca nặng. | Loại *Tự làm toàn bộ* (gây hại Ca #5, #7) và loại *Cần dược sĩ duyệt toàn bộ* (gây tắc Ca #9 C sủi). |
 
 - **Tool khó xếp nhất:** `goi_y_san_pham`.
-  - *Cái giá phía Tự làm:* Dễ gợi ý nhầm trong Kịch bản #5 (trẻ nôn ói 2 ngày) và Kịch bản #7 (khách gắt ép ship không cho biết tuổi/bệnh nền).
+  - *Mỗi người từng chọn gì:* [TV1] chọn **Tự làm + Hoàn tác** (để khách mua nhanh, giống trải nghiệm thật hiện nay) · [TV2] chọn **Cần dược sĩ duyệt mọi ca** (vì thuốc đã uống là không đảo được) · [TV3] đề xuất **tách theo điều kiện** — nhóm chốt theo phương án này.
+  - *Cái giá phía Tự làm:* Dễ gợi ý nhầm trong Kịch bản #5 (trẻ nôn ói 2 ngày) và Kịch bản #7 (khách gắt ép ship không cho biết người dùng/bệnh nền). Nút "Hoàn tác" vô nghĩa khi thuốc đã uống.
   - *Cái giá phía Cần dược sĩ duyệt mọi ca:* Kịch bản #9 (khách chỉ mua C sủi) cũng phải xếp hàng chờ dược sĩ lúc nửa đêm → nghẽn hàng chờ làm trễ ca nặng thật.
-  - *Cách chốt:* Áp dụng **luật ngưỡng + tách bước UI** — AI chỉ được tự hiện gợi ý OTC + nút đặt khi đủ 4 trường sàng lọc âm tính rủi ro; hễ thiếu thông tin hoặc rơi vào nhóm nhạy cảm thì tự động chuyển sang trạng thái **chỉ hiển thị thông tin + khóa nút đặt + chờ dược sĩ**.
+  - *Cách chốt:* **luật ngưỡng S1–S4 + tách bước tool** (xem dưới).
+- **Luật thêm & tool tách bước:**
+  - Tách `goi_y_san_pham` thành 2 bước: **(a) hiện thẻ gợi ý** (chỉ thông tin) và **(b) bật nút đặt**. Bước (b) chỉ chạy khi đủ S1–S4 và không thuộc nhóm nhạy cảm. Lý do: tách để khóa đúng phần không đảo được (đặt → giao → uống) mà vẫn cho khách thấy AI đang làm gì.
+  - Luật mở khóa chạy bằng code (đếm trường S1–S4 và cờ nhạy cảm), **không phụ thuộc AI phân loại hay câu chữ** — khách gắt đến đâu cũng không mở được.
 - **Test mức tự chủ trên 3 kịch bản:**
-  1. **Ca đắt #1 (#5 Con nôn ói 2 ngày):** AI không gợi ý sản phẩm (bị khóa bởi luật trẻ nhỏ), hỏi 1 câu red-flag → đẩy `URGENT` `chuyen_duoc_si` / `khuyen_di_kham`. *Cái sai bị chặn? Có. Chờ vô ích? Không.*
-  2. **Ca đắt #2 (#7 Khách gắt ép ship):** AI khóa nút đặt vì thiếu dữ kiện người uống, không nhượng bộ dù khách ép, mở nút `chuyen_duoc_si` và chạy timer nhắc 2-4-8 phút. *Cái sai bị chặn? Có. AI tự làm khi lẽ ra phải hỏi? Không.*
-  3. **Ca bình thường (#9 Mua C sủi):** Khách trả lời nhanh 1 bước cho người lớn khỏe mạnh, không dị ứng → AI mở thẻ `goi_y_san_pham` OTC kèm nút Hoàn tác/Gỡ và hỏi xin phép `luu_ghi_chu_suc_khoe`. *Khách thường phải chờ dược sĩ vô ích? Không.*
-- **Lời hứa mới với người dùng:** Thay vì hứa *"Chat với AI để được kê đơn & mua thuốc tức thì"*, kênh Hỏi dược sĩ AI hứa: **"Sàng lọc rủi ro trong 30 giây — chỉ gợi ý sản phẩm OTC khi đủ dữ kiện an toàn, và đưa ca nguy hiểm/nhạy cảm tới thẳng đầu hàng chờ Dược sĩ."**
+  1. **Ca đắt #1 (#5 Con nôn ói 2 ngày):** AI không hiện thẻ sản phẩm (nhóm nhạy cảm → nhánh 3), hỏi 1 câu red-flag, phiếu `URGENT` được tạo từ giây 0, có dấu hiệu thì `khuyen_di_kham` ngay. *Cái sai bị chặn? Có. Còn tự làm khi lẽ ra phải hỏi? Không. Chờ vô ích? Không.*
+  2. **Ca đắt #2 (#7 Khách gắt ép ship):** AI giữ thẻ khóa vì thiếu S1–S4 (nhánh 2), không nhượng bộ dù khách ép, mở nút `chuyen_duoc_si` + xác nhận nhanh 1 chạm, chạy nhắc 2-4-8 phút. *Cái sai bị chặn? Có. AI tự làm khi lẽ ra phải hỏi? Không. Chờ vô ích? Không — có lối 1 chạm.*
+  3. **Ca bình thường (#9 Mua C sủi):** Khách xác nhận nhanh S1–S4 trong 1 lượt → AI mở thẻ `goi_y_san_pham` OTC kèm nút Đặt và Hoàn tác (nhánh 1), cuối phiên hỏi xin phép `luu_ghi_chu_suc_khoe`. *Khách thường phải chờ dược sĩ vô ích? Không.*
+- **Lời hứa mới với người dùng:** Thay vì hứa *"Chat với AI để được tư vấn & mua thuốc tức thì"*, kênh Hỏi dược sĩ AI hứa: **"AI chỉ bật nút mua OTC khi đã biết rõ ai sẽ dùng thuốc; ca trẻ nhỏ, mang thai hay có dấu hiệu nguy hiểm được đưa thẳng tới đầu hàng chờ Dược sĩ."** Mức *Cần dược sĩ* cho nhóm nhạy cảm đổi lời hứa "nhanh" thành lời hứa "đúng người".
 
-## §5. Prototype  (chặng 5)
-- Link hoặc file · công cụ · phần nào mock · có lời gọi AI thật không.
-- 1–2 ảnh có đánh số; mỗi số: thể hiện gì · nguyên tắc HAX/PAIR nào · mức tự chủ nào.
-- Quyết định: cách hiện độ chắc/bằng chứng và điều khiển mức tự chủ — đã nghĩ tới cách nào khác, vì sao chọn cách này.
+---
 
-## §6. Tốt là gì  (chặng 6 — nhẹ, bỏ được nếu thiếu giờ)
-- 3 tiêu chí Pass/Fail chấm được; thiết kế của nhóm đạt tiêu chí nào trên 2 kịch bản đắt nhất; lỗi còn lại.
+## §5. Prototype
+
+- **File / Link:** `prototype/index.html`
+- **Công cụ & phần mock:** 1 file HTML/CSS/JS thuần (mở trực tiếp, không cần server), dựng với hỗ trợ của coding agent (Claude Code); mock danh mục OTC mẫu, 4 kịch bản test, ô nhập tự do cho ca lạ (phân loại bằng luật từ khóa), nút mô phỏng khách im lặng (60 giây ở #5; 2 → 4 → 8 phút ở #7), và hàng chờ Dược sĩ trực. Có lời gọi AI thật, AI chỉ phân loại tin nhắn.
+- **Chú thích 3 ảnh chụp màn hình (khớp số ①–⑥ trên prototype):**
+
+  | Ca #5 — bấm "Có dấu hiệu" (① ② ④ ⑥) | Ca #7 — khách gắt, thẻ khóa (① ② ③ ⑥) | Ca #7 — xác nhận nhanh → Đặt (② ⑤) |
+  |---|---|---|
+  | ![Ca 5](prototype/screenshot-1-ca5-canh-bao.png) | ![Ca 7 khóa](prototype/screenshot-2-ca7-khoa-nut.png) | ![Ca 7 đặt](prototype/screenshot-3-ca7-dat-hoan-tac.png) |
+
+  - **Số ① (`G1` — Minh bạch AI):** Banner đầu khung chat ghi rõ *"Trợ lý AI Pharmacity · Hỗ trợ sàng lọc, không thay Dược sĩ/Bác sĩ"*.
+  - **Số ② (`G11` + `PAIR Explainability` — Bằng chứng):** Hộp *"AI đang căn cứ vào đâu"* (Đã biết vs. Còn thiếu S1–S4) + bảng trạng thái 5 tool, cập nhật trực tiếp theo hội thoại.
+  - **Số ③ (`G10` — Thu hẹp phạm vi & Rào cản cứng):** Thẻ `goi_y_san_pham` bị **khóa nút Đặt hàng** khi thiếu S1–S4; với `ban_thuoc_ke_don` (*Cấm*) **không có nút mua nào**.
+  - **Số ④ (`Mức Tự làm` — Cấp cứu không chờ):** Thẻ đỏ `khuyen_di_kham` + nút `[Gọi 115]` / `[Tôi đã hiểu]` + nút chọn nhanh 1 câu red-flag.
+  - **Số ⑤ (`Mức Cần duyệt` + `Hoàn tác`):** Thẻ xin phép `luu_ghi_chu_suc_khoe` (khách bấm Đồng ý/Không lưu) và nút **Hoàn tác** trên thẻ sản phẩm OTC / xóa ghi chú.
+  - **Số ⑥ (`Bonus T1` — Góc nhìn Dược sĩ):** Bảng hàng chờ bên phải hiển thị ca chuyển sang kèm mức `URGENT` / `Normal` và phiếu tóm tắt triệu chứng, dữ kiện còn thiếu để khách không phải kể lại.
+- **Quyết định thiết kế hiện độ chắc & mức tự chủ:** Chọn hiển thị **hộp checklist dữ kiện (Đã biết / Còn thiếu) + trạng thái khóa nút** thay vì hiện con số `% độ tin cậy` (ví dụ "AI chắc 65%") — vì khách đang lo sức khỏe không hiểu ý nghĩa con số %, và con số không cho họ biết phải làm gì tiếp; trong khi nhìn *"Thiếu: tuổi bé, dị ứng"* giúp họ biết ngay phải cung cấp gì hoặc vì sao AI chưa dám gợi ý. Cũng đã cân nhắc *chỉ ẩn nút đặt* (không hiện thẻ khóa) → loại vì khách không hiểu vì sao không mua được và sẽ hỏi lại/bỏ đi; thẻ khóa kèm lý do vừa là rào cứng vừa là lời giải thích.
+
+---
+
+## §6. Tốt là gì *(nhẹ)*
+
+1. **Tiêu chí 1 (Chặn ca nguy hiểm / nhạy cảm):** 100% tin nhắn có red-flag hoặc thuộc nhóm nhạy cảm (§1) **không hiện nút đặt** và được gọi `khuyen_di_kham` hoặc `chuyen_duoc_si` mức `URGENT` trong lượt trả lời đầu tiên (0 ca vào hàng chờ `Normal`).
+   - *Chấm thử Ca #5:* **Đạt** (không hiện thẻ sản phẩm, phiếu URGENT tạo ở lượt đầu, có dấu hiệu thì cảnh báo đi khám). *Ca #7:* **Đạt** (không có red-flag/nhóm nhạy cảm đã biết; nút đặt vẫn khóa).
+2. **Tiêu chí 2 (Không làm liều khi thiếu dữ kiện):** 100% ca thiếu ≥1 trường S1–S4 không được bật nút đặt của `goi_y_san_pham`, bất kể giọng điệu khách gắt.
+   - *Chấm thử Ca #5 & #7:* **Đạt**.
+3. **Tiêu chí 3 (Quyền riêng tư):** 0 lần gọi `luu_ghi_chu_suc_khoe` khi chưa có thao tác bấm "Đồng ý lưu" của khách.
+   - *Chấm thử Ca #5 & #7:* **Đạt**.
+- **Lỗi còn lại chưa giải quyết hết bằng thiết kế này:** Nếu khách **nói dối** khi bấm xác nhận nhanh (ví dụ chọn *"người lớn khỏe mạnh"* nhưng thực tế mua cho trẻ nhỏ), AI không có cách xác minh và vẫn mở gợi ý OTC — cần dược sĩ/nhãn thuốc cảnh báo lại khi giao nhận. Ngoài ra luật từ khóa có thể bỏ sót cách nói lạ của red-flag (VD: "bé cứ nằm im không chơi") → cần bổ sung từ điển từ ca thật do dược sĩ gắn nhãn.
+
+---
 
 ## §7. Demo
 - Ca lạ nhận được ở demo: prototype đã làm gì, và nhóm có đổi ý gì sau ca đó không.
-```

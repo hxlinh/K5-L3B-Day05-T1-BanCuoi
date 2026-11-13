@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hỏi Dược Sĩ — AI Triage Prototype (T1)</title>
+<style>
+  :root{
+    --bg:#f2f4f6; --panel:#ffffff; --ink:#1c2430; --muted:#5f6b78; --line:#e1e5ea;
+    --brand:#0b6e4f; --brand-soft:#e5f3ed;
+    --red:#c62828; --red-soft:#fdecec;
+    --amber:#9a5800; --amber-soft:#fff3dd;
+    --blue:#1f4fd1; --blue-soft:#e9efff;
+    --gray-soft:#f0f2f4; --badge:#7c3aed;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+  button{font:inherit;cursor:pointer}
+  button:disabled{cursor:not-allowed}
+
+  /* ---------- Header ---------- */
+  header{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px;position:sticky;top:0;z-index:20}
+  .hrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+  h1{font-size:16px;margin:0 8px 0 0}
+  h1 small{font-weight:500;color:var(--muted)}
+  .cases{display:flex;flex-wrap:wrap;gap:6px}
+  .cases button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font-size:13px}
+  .cases button:hover{border-color:var(--brand)}
+  .cases button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .cases button.reset{background:var(--gray-soft)}
+  .annot-toggle{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .legend{display:none;margin-top:8px;font-size:12px;color:var(--muted);gap:4px 14px;flex-wrap:wrap}
+  body.annot .legend{display:flex}
+  .legend b{color:var(--badge)}
+
+  /* ---------- Layout ---------- */
+  main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;padding:16px;max-width:1280px;margin:0 auto}
+  @media (max-width:980px){main{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+  .ptitle{font-weight:650;font-size:13px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin:0 0 8px}
+
+  /* ---------- Badges (chú thích HAX/PAIR) ---------- */
+  .has-badge{position:relative}
+  .badge{display:none;position:absolute;top:-10px;left:-10px;width:24px;height:24px;border-radius:50%;
+    background:var(--badge);color:#fff;font-weight:700;font-size:14px;align-items:center;justify-content:center;
+    box-shadow:0 0 0 3px #fff;z-index:5}
+  body.annot .badge{display:inline-flex}
+
+  /* ---------- Chat ---------- */
+  .chatwrap{display:flex;flex-direction:column;height:calc(100vh - 150px);min-height:560px}
+  .banner{margin:14px 14px 0;padding:9px 12px;border-radius:10px;background:var(--brand-soft);color:#0a4d38;font-size:13px}
+  .banner b{color:var(--brand)}
+  #chat{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+  .row{display:flex}
+  .row.user{justify-content:flex-end}
+  .msg{max-width:84%;padding:9px 12px;border-radius:14px;white-space:normal}
+  .row.user .msg{background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+  .row.ai .msg{background:var(--gray-soft);border-bottom-left-radius:4px}
+  .row.sys{justify-content:center}
+  .row.sys .msg{background:transparent;color:var(--muted);font-size:12.5px;text-align:center;max-width:92%}
+  .ai-tag{font-size:11px;font-weight:650;color:var(--brand);margin-bottom:2px}
+  .tchip{display:inline-block;background:var(--amber-soft);color:var(--amber);border-radius:6px;padding:0 6px;font-weight:600;margin-right:4px}
+  .row.cardrow{justify-content:flex-start;padding-left:10px}
+  .typing{color:var(--muted);font-style:italic}
+
+  .quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 11px;font-size:13px;color:var(--ink)}
+  .btn:hover:not(:disabled){border-color:var(--brand)}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  .btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--blue);text-decoration:underline;padding:6px 4px}
+  .btn.chosen{outline:2px solid var(--ink);outline-offset:1px}
+  .btn:disabled{opacity:.5}
+
+  .card{width:min(440px,92%);border:1px solid var(--line);border-radius:12px;background:#fff;padding:11px 13px}
+  .card h4{margin:0 0 4px;font-size:14px}
+  .card .sub{color:var(--muted);font-size:12.5px}
+  .card.locked{border-style:dashed;border-color:#b9c0c8;background:#fafbfc}
+  .card.emerg{border:2px solid var(--red);background:var(--red-soft)}
+  .card.emerg h4{color:var(--red)}
+  .card.refuse{border-color:#e7b3b3}
+  .card.consent{border-color:#c9b6f5;background:#faf7ff}
+  .card.form .frow{margin:7px 0}
+  .card.form .flabel{font-size:12.5px;font-weight:600;margin-bottom:3px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px;font-size:12.5px}
+  .chip.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue);font-weight:600}
+  .lockline{margin-top:6px;font-size:12.5px;color:var(--amber);background:var(--amber-soft);border-radius:7px;padding:5px 8px}
+  .okline{margin-top:6px;font-size:12.5px;color:#0a4d38;background:var(--brand-soft);border-radius:7px;padding:5px 8px}
+  .collapsed{font-size:12.5px;color:var(--muted)}
+
+  .composer{border-top:1px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+  .composer form{display:flex;gap:8px}
+  .composer input{flex:1;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit}
+  .composer .hint{font-size:12px;color:var(--muted)}
+  .composer .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  /* ---------- Right column ---------- */
+  .right{display:flex;flex-direction:column;gap:16px}
+  .box{padding:14px}
+  .ev{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:560px){.ev{grid-template-columns:1fr}}
+  .ev h5{margin:0 0 5px;font-size:12.5px}
+  .ev ul{margin:0;padding-left:17px}
+  .ev li{margin:2px 0}
+  .known li::marker{color:var(--brand)}
+  .missing li{color:var(--red)}
+  .slist{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12.5px}
+  @media (max-width:560px){.slist{grid-template-columns:1fr}}
+  .sitem.ok{color:#0a4d38}
+  .sitem.no{color:var(--red)}
+  .lockstate{margin-top:10px;padding:7px 10px;border-radius:8px;font-size:13px;font-weight:600}
+  .lockstate.locked{background:var(--amber-soft);color:var(--amber)}
+  .lockstate.open{background:var(--brand-soft);color:#0a4d38}
+  .source{margin-top:6px;font-size:12px;color:var(--muted)}
+  table.tools{width:100%;border-collapse:collapse;margin-top:12px;font-size:12.5px}
+  table.tools td{border-top:1px solid var(--line);padding:5px 4px;vertical-align:top}
+  table.tools td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:12px;white-space:nowrap}
+  .tag{display:inline-block;border-radius:6px;padding:1px 7px;font-weight:600}
+  .t-gray{background:var(--gray-soft);color:var(--muted)}
+  .t-green{background:var(--brand-soft);color:#0a4d38}
+  .t-amber{background:var(--amber-soft);color:var(--amber)}
+  .t-red{background:var(--red-soft);color:var(--red)}
+  .t-blue{background:var(--blue-soft);color:var(--blue)}
+
+  .ticket{border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-top:8px;background:#fff}
+  .ticket.urgent{border:2px solid var(--red);background:#fff8f8}
+  .ticket.log{background:var(--gray-soft);border-style:dashed}
+  .ticket.flash{animation:flash 1s ease-in-out 3}
+  @keyframes flash{50%{box-shadow:0 0 0 4px rgba(198,40,40,.35)}}
+  .thead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .lvl{font-size:11px;font-weight:700;border-radius:5px;padding:1px 6px}
+  .lvl.URGENT{background:var(--red);color:#fff}
+  .lvl.Normal{background:var(--blue-soft);color:var(--blue)}
+  .lvl.LOG{background:#d9dde2;color:#3b4552}
+  .tid{font-size:11.5px;color:var(--muted);margin-left:auto}
+  .ticket ul{margin:5px 0 0;padding-left:17px;font-size:12.5px}
+  .tstatus{margin-top:5px;font-size:12.5px}
+  .tstatus b{color:var(--amber)}
+
+  /* ---------- Footer / AI settings ---------- */
+  footer{max-width:1280px;margin:0 auto;padding:0 16px 24px}
+  details.ai{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+  details.ai summary{cursor:pointer;font-weight:600}
+  .aigrid{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+  .aigrid input,.aigrid select{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}
+  .aigrid input[type=password]{min-width:240px}
+  pre.log{background:#0f172a;color:#d6e2ff;border-radius:8px;padding:10px;font-size:12px;max-height:220px;overflow:auto;white-space:pre-wrap;margin:10px 0 0}
+  .disclaimer{font-size:12px;color:var(--muted);margin-top:10px}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1c2430;color:#fff;padding:9px 14px;border-radius:9px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50;max-width:90vw}
+  #toast.show{opacity:1}
+</style>
+</head>
+<body class="annot">
+
+<header>
+  <div class="hrow">
+    <h1>Hỏi Dược Sĩ — AI Triage Prototype <small>· Track T1 Y tế</small></h1>
+    <div class="cases" id="caseBtns">
+      <button data-case="c5">Ca #5 (Demo bắt buộc): Con nôn ói 2 ngày</button>
+      <button data-case="c7">Ca #7 (Ép ranh giới): Khách gắt "cứ ship đi"</button>
+      <button data-case="c4">Ca #4 (Cấm + 2 yêu cầu): Kháng sinh + hoàn tiền</button>
+      <button data-case="c9">Ca #9 (Bình thường): Mua C sủi</button>
+      <button class="reset" id="resetBtn">↺ Reset</button>
+    </div>
+    <label class="annot-toggle"><input type="checkbox" id="annotChk" checked> Hiện số chú thích ①–⑥ (HAX/PAIR)</label>
+  </div>
+  <div class="legend">
+    <span><b>①</b> G1 · Minh bạch AI</span>
+    <span><b>②</b> G11 + PAIR Explainability · Căn cứ của AI</span>
+    <span><b>③</b> G10 · Thu hẹp phạm vi / Rào cứng / Cấm</span>
+    <span><b>④</b> Mức Tự làm · Cấp cứu không chờ</span>
+    <span><b>⑤</b> Mức Cần duyệt + Hoàn tác</span>
+    <span><b>⑥</b> Bonus T1 · Màn hình Dược sĩ</span>
+  </div>
+</header>
+
+<main>
+  <!-- ============ CỘT TRÁI: KHÁCH HÀNG ============ -->
+  <section class="panel chatwrap">
+    <div class="banner has-badge"><span class="badge">①</span>
+      🤖 <b>Trợ lý AI Pharmacity</b> · Hỗ trợ sàng lọc ban đầu, <b>không kê đơn hay chẩn đoán</b> thay Dược sĩ/Bác sĩ. Ca cần chuyên môn sẽ được chuyển cho Dược sĩ trực.
+    </div>
+    <div id="chat" aria-live="polite"></div>
+    <div class="composer">
+      <form id="sendForm">
+        <input id="msgInput" autocomplete="off" placeholder="Nhập tin của khách (ca lạ), VD: “Bà tôi 80 tuổi tự dưng đau ngực”…">
+        <button class="btn primary" type="submit">Gửi</button>
+      </form>
+      <div class="tools">
+        <button class="btn" id="silentBtn" type="button">⏱ Mô phỏng khách im lặng / quá hạn</button>
+        <span class="hint" id="modeHint">Phân loại ô nhập tự do: <b>Luật từ khóa</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CỘT PHẢI: BẰNG CHỨNG + DƯỢC SĨ ============ -->
+  <section class="right">
+    <div class="panel box has-badge"><span class="badge">②</span>
+      <p class="ptitle">AI đang căn cứ vào đâu?</p>
+      <div class="ev">
+        <div><h5>✅ Đã biết</h5><ul class="known" id="knownList"></ul></div>
+        <div><h5>⚠ Còn thiếu / Rủi ro phát hiện</h5><ul class="missing" id="riskList"></ul></div>
+      </div>
+      <div class="slist" id="sList"></div>
+      <div class="lockstate" id="lockState"></div>
+      <div class="source" id="sourceLine"></div>
+      <table class="tools" id="toolTable"></table>
+    </div>
+
+    <div class="panel box has-badge"><span class="badge">⑥</span>
+      <p class="ptitle">Hàng chờ Dược sĩ trực <span style="text-transform:none;font-weight:500">· màn hình phía dược sĩ</span></p>
+      <div id="queue"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <details class="ai">
+    <summary>⚙ Lời gọi AI thật (Bonus) — AI chỉ <u>phân loại rủi ro</u>, việc khóa/mở nút Đặt do code quyết định</summary>
+    <div class="aigrid">
+      <label><input type="checkbox" id="aiOn"> Dùng AI thật cho ô nhập tự do</label>
+      <select id="aiProv">
+        <option value="gemini">Google Gemini</option>
+        <option value="openai">OpenAI</option>
+      </select>
+      <input id="aiModel" value="gemini-2.5-flash" title="Tên model — sửa nếu model này không còn khả dụng">
+      <input id="aiKey" type="password" placeholder="Dán API key (chỉ lưu trong sessionStorage)">
+      <button class="btn" id="saveKey" type="button">Lưu key</button>
+      <button class="btn" id="clearKey" type="button">Xóa key</button>
+      <button class="btn" id="dlLog" type="button">⬇ Tải log AI (.json)</button>
+      <span class="hint" id="keyState"></span>
+    </div>
+    <pre class="log" id="aiLogView">(Chưa có lời gọi AI nào)</pre>
+    <div class="disclaimer">Key không được ghi vào file, không gửi đi đâu ngoài nhà cung cấp AI bạn chọn, tự mất khi đóng tab. Log tải về không chứa key. Nếu lời gọi lỗi/hết giờ, hệ thống tự quay về <b>Luật từ khóa</b>.</div>
+  </details>
+  <div class="disclaimer">Prototype cho bài lab — toàn bộ dữ liệu là dữ liệu dựng (sản phẩm mẫu, hàng chờ mẫu, tên dược sĩ mẫu). Không phải sản phẩm thật, không dùng cho tư vấn y tế.</div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+/* =====================================================================
+   0. HẰNG SỐ & DỮ LIỆU DỰNG
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const S_KEYS = ['S1','S2','S3','S4'];
+const S_LABEL = {
+  S1:'S1 · Người dùng thuốc & tuổi',
+  S2:'S2 · Mang thai / cho con bú',
+  S3:'S3 · Dị ứng thuốc',
+  S4:'S4 · Thuốc đang dùng & bệnh nền'
+};
+const S_OPTIONS = {
+  S1:['Người lớn (18–60 tuổi)','Trẻ em (dưới 18)','Người trên 60 tuổi'],
+  S2:['Không','Đang mang thai','Đang cho con bú'],
+  S3:['Không dị ứng','Có dị ứng thuốc'],
+  S4:['Không dùng thuốc / không bệnh nền','Có thuốc đang dùng hoặc bệnh nền']
+};
+const QUICK_SAFE = {S1:'Người lớn (18–60 tuổi)',S2:'Không',S3:'Không dị ứng',S4:'Không dùng thuốc / không bệnh nền'};
+
+const PRODUCTS = {
+  vitc:  {name:'Viên sủi bổ sung Vitamin C — tuýp 10 viên', note:'Thực phẩm bổ sung · sản phẩm mẫu (dữ liệu dựng)'},
+  cam:   {name:'Viên cảm cúm OTC — sản phẩm mẫu A, hộp 10 viên', note:'Thuốc không kê đơn · dữ liệu dựng'},
+  hong:  {name:'Viên ngậm dịu họng OTC — sản phẩm mẫu B', note:'Thuốc không kê đơn · dữ liệu dựng'},
+  saline:{name:'Nước muối sinh lý 0,9% — chai 500ml', note:'Sản phẩm mẫu · dữ liệu dựng'},
+  mask:  {name:'Khẩu trang y tế 4 lớp — hộp 50 cái', note:'Sản phẩm mẫu · dữ liệu dựng'},
+  generic:{name:'Sản phẩm OTC phù hợp — sản phẩm mẫu', note:'Thuốc không kê đơn · dữ liệu dựng'}
+};
+
+const PHARMACIST = 'DS. Minh Anh (tên mẫu)';
+const RF_CHILD = 'bé dưới 6 tháng tuổi, lừ đừ khó đánh thức, môi khô/khóc không ra nước mắt, không uống được nước, sốt cao, co giật, khó thở, hoặc phân có máu';
+const RF_ADULT = 'khó thở, đau/tức ngực, lơ mơ, yếu hoặc tê một bên người, méo miệng, sốt cao không hạ, nôn ra máu';
+const AI_INTRO = 'Mình là Trợ lý AI Pharmacity (không thay thế bác sĩ/dược sĩ).';
+
+/* =====================================================================
+   1. TRẠNG THÁI
+   ===================================================================== */
+let run = 0;          // token để hủy kịch bản cũ khi bấm ca khác / reset
+let st, queue, tSeq = 200, orderSeq = 40;
+const aiLog = [];
+
+function defaultTools(){
+  return {
+    goi_y_san_pham:       ['Chưa đánh giá','t-gray'],
+    chuyen_duoc_si:       ['Tự làm · chưa kích hoạt','t-gray'],
+    khuyen_di_kham:       ['Tự làm · chưa kích hoạt','t-gray'],
+    luu_ghi_chu_suc_khoe: ['Cần khách đồng ý · chưa hỏi','t-gray'],
+    ban_thuoc_ke_don:     ['Cấm · không có nút nào gọi tool này','t-red']
+  };
+}
+function freshState(){
+  return {
+    caseId:null,
+    S:{S1:null,S2:null,S3:null,S4:null},
+    known:[], risks:[],
+    flags:{sensitive:false, redflag:false, rx:false, allergy:false},
+    pending:null, silentStep:0,
+    product:null, cardEl:null, order:null, consentShown:false, note:null,
+    ticketId:null, formEl:null,
+    source:'Kịch bản dựng sẵn',
+    tools:defaultTools()
+  };
+}
+function sampleQueue(){
+  return [
+    {id:'Q-101',level:'Normal',title:'Hỏi giá khẩu trang y tế',lines:['Đối tượng: người lớn','Nội dung: hỏi giá, khuyến mãi'],status:'Chờ tiếp nhận · 6 phút',mine:false},
+    {id:'Q-102',level:'Normal',title:'Hỏi khuyến mãi sữa bột',lines:['Đối tượng: người lớn','Nội dung: hỏi chương trình khuyến mãi'],status:'Chờ tiếp nhận · 4 phút',mine:false},
+    {id:'Q-103',level:'Normal',title:'Hỏi cách bảo quản men vi sinh',lines:['Đối tượng: người lớn','Nội dung: bảo quản sản phẩm'],status:'Chờ tiếp nhận · 2 phút',mine:false}
+  ];
+}
+
+/* =====================================================================
+   2. HELPERS GIAO DIỆN CHAT
+   ===================================================================== */
+const chat = $('#chat');
+function scrollChat(){ chat.scrollTop = chat.scrollHeight; }
+function addRow(cls, inner){
+  const row = document.createElement('div');
+  row.className = 'row ' + cls;
+  if (typeof inner === 'string') row.innerHTML = inner; else row.appendChild(inner);
+  chat.appendChild(row); scrollChat(); return row;
+}
+function userSay(text){ return addRow('user', `<div class="msg">${esc(text)}</div>`); }
+function aiSay(html){ return addRow('ai', `<div class="msg"><div class="ai-tag">AI · Trợ lý Pharmacity</div>${html}</div>`); }
+function sysSay(html){ return addRow('sys', `<div class="msg">${html}</div>`); }
+function addCard(el){ return addRow('cardrow', el); }
+function typing(){ return addRow('ai', `<div class="msg typing">AI đang soạn…</div>`); }
+async function wait(ms, tok){ await sleep(ms); if (tok !== run) throw new Error('stale'); }
+async function aiReply(html, tok, ms=550){
+  const t = typing(); try { await wait(ms, tok); } finally { t.remove(); }
+  return aiSay(html);
+}
+/** Thêm hàng nút trả lời nhanh vào cuối 1 bubble/card. Bấm 1 nút → khóa cả hàng. */
+function quick(parent, buttons){
+  const box = document.createElement('div'); box.className = 'quick';
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'btn ' + (b.cls || ''); btn.type = 'button'; btn.innerHTML = b.label;
+    btn.onclick = () => {
+      if (!b.keep) { box.querySelectorAll('button').forEach(x => x.disabled = true); btn.classList.add('chosen'); }
+      b.onClick(btn);
+    };
+    box.appendChild(btn);
+  });
+  (parent.querySelector('.msg') || parent).appendChild(box); scrollChat(); return box;
+}
+function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('show'), 2600); }
+
+/* =====================================================================
+   3. LUẬT CỨNG (chạy bằng code — AI/câu chữ không mở khóa được)
+   ===================================================================== */
+function missingS(){ return S_KEYS.filter(k => !st.S[k]); }
+/** Lý do khóa nút Đặt; null = được mở. Thứ tự: red-flag > kê đơn > nhạy cảm > dị ứng > thiếu S1–S4 */
+function lockReason(){
+  if (st.flags.redflag)  return 'Có dấu hiệu nguy hiểm → đi khám, không gợi ý thuốc';
+  if (st.flags.rx)       return 'Thuốc kê đơn → Cấm bán qua chat';
+  if (st.flags.sensitive)return 'Nhóm nhạy cảm → Dược sĩ tư vấn, AI không gợi ý';
+  if (st.flags.allergy)  return 'Có dị ứng thuốc → Dược sĩ kiểm tra thành phần';
+  const m = missingS();
+  if (m.length)          return 'Thiếu ' + m.join(', ');
+  if (!st.product)       return 'Chưa có yêu cầu sản phẩm';
+  return null;
+}
+function cardState(){
+  if (st.order) return st.order;                // 'ordered' | 'cancelled'
+  if (st.flags.redflag || st.flags.rx || st.flags.sensitive || st.flags.allergy) return 'none';
+  if (missingS().length) return 'locked';
+  return 'open';
+}
+function setTool(k, label, cls){ st.tools[k] = [label, cls]; }
+
+/* =====================================================================
+   4. RENDER CỘT PHẢI
+   ===================================================================== */
+function renderEvidence(){
+  $('#knownList').innerHTML = st.known.length ? st.known.map(x=>`<li>${esc(x)}</li>`).join('') : '<li style="color:var(--muted)">—</li>';
+  const risks = [...st.risks];
+  missingS().forEach(k => risks.push('Thiếu ' + S_LABEL[k]));
+  $('#riskList').innerHTML = risks.length ? risks.map(x=>`<li>${esc(x)}</li>`).join('') : '<li style="color:var(--muted)">Không phát hiện</li>';
+  $('#sList').innerHTML = S_KEYS.map(k => st.S[k]
+    ? `<div class="sitem ok">✓ ${esc(S_LABEL[k])}: <b>${esc(st.S[k])}</b></div>`
+    : `<div class="sitem no">✗ ${esc(S_LABEL[k])}: chưa có</div>`).join('');
+  const r = lockReason();
+  const ls = $('#lockState');
+  if (!st.caseId){ ls.className='lockstate locked'; ls.textContent='Nút Đặt: 🔒 Khóa — chưa có hội thoại'; }
+  else if (r){ ls.className='lockstate locked'; ls.textContent='Nút Đặt: 🔒 Khóa — ' + r; }
+  else { ls.className='lockstate open'; ls.textContent='Nút Đặt: 🔓 Mở — đủ S1–S4, không thuộc nhóm nhạy cảm'; }
+  $('#sourceLine').textContent = 'Nguồn phân loại: ' + st.source;
+  $('#toolTable').innerHTML = Object.entries(st.tools).map(([k,[l,c]]) =>
+    `<tr><td>${k}</td><td><span class="tag ${c}">${esc(l)}</span></td></tr>`).join('');
+}
+function renderQueue(){
+  const order = {URGENT:0, Normal:1, LOG:2};
+  const items = [...queue].sort((a,b) => order[a.level]-order[b.level]);
+  const q = $('#queue'); q.innerHTML = '';
+  items.forEach((t,i) => {
+    const el = document.createElement('div');
+    el.className = 'ticket' + (t.level==='URGENT'?' urgent':'') + (t.level==='LOG'?' log':'') + (t.flash?' flash':'');
+    el.innerHTML = `<div class="thead"><span class="lvl ${t.level}">${t.level}</span><b>#${i+1} · ${esc(t.title)}</b><span class="tid">${t.id}</span></div>
+      <ul>${t.lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>
+      <div class="tstatus">Trạng thái: <b>${esc(t.status)}</b></div>`;
+    if (t.level !== 'LOG' && !t.accepted){
+      const b = document.createElement('button'); b.className = 'btn ' + (t.level==='URGENT'?'danger':''); b.style.marginTop='6px';
+      b.textContent = 'Tiếp nhận ca ngay';
+      b.onclick = () => acceptTicket(t.id);
+      el.appendChild(b);
+    }
+    q.appendChild(el);
+    t.flash = false;
+  });
+}
+function renderSide(){ renderEvidence(); renderQueue(); }
+
+function addTicket(t){
+  t.id = 'Q-' + (++tSeq); queue.push(t); renderQueue(); return t;
+}
+function updTicket(id, patch){ const t = queue.find(x=>x.id===id); if (t){ Object.assign(t, patch); renderQueue(); } }
+function removeTicket(id){ queue = queue.filter(x=>x.id!==id); renderQueue(); }
+function acceptTicket(id){
+  const t = queue.find(x=>x.id===id); if (!t) return;
+  t.accepted = true; t.status = 'Đang xử lý bởi ' + PHARMACIST; renderQueue();
+  if (t.mine){
+    sysSay(`👩‍⚕️ <b>${PHARMACIST}</b> đã vào cuộc trò chuyện — đã đọc tóm tắt của AI, bạn không cần kể lại.`);
+    st.pending = null;
+    setTool('chuyen_duoc_si', 'Tự làm · dược sĩ đã tiếp nhận', 't-green'); renderEvidence();
+  } else toast('Dược sĩ tiếp nhận ca mẫu ' + id);
+}
+/** Tạo (hoặc nâng) phiếu chuyển dược sĩ của phiên hiện tại */
+function routeToPharmacist(level, title, lines, status){
+  const existing = st.ticketId && queue.find(x=>x.id===st.ticketId);
+  if (existing){
+    Object.assign(existing, {level: existing.level==='URGENT' ? 'URGENT' : level, title, lines, status, flash:true});
+    renderQueue(); return existing;
+  }
+  const t = addTicket({level, title, lines, status, mine:true, flash:true});
+  st.ticketId = t.id;
+  setTool('chuyen_duoc_si', `Tự làm · đã chuyển mức ${level}`, level==='URGENT' ? 't-red' : 't-blue');
+  return t;
+}
+
+/* =====================================================================
+   5. THẺ (CARD) TRONG CHAT
+   ===================================================================== */
+/** Thẻ khuyen_di_kham — Badge ④ — Tự làm, khách đóng được (G8) */
+function emergencyCard(title, body){
+  const el = document.createElement('div');
+  el.className = 'card emerg has-badge';
+  el.innerHTML = `<span class="badge">④</span><h4>⚠ ${title}</h4><div>${body}</div>`;
+  addCard(el);
+  quick(el, [
+    {label:'📞 Gọi 115', cls:'danger', keep:true, onClick:()=>toast('(Mô phỏng) Đang mở cuộc gọi 115…')},
+    {label:'Tôi đã hiểu', onClick:()=>{
+      el.className = 'card'; el.innerHTML = `<div class="collapsed">✔ Bạn đã xem cảnh báo đi khám. Bấm “Gọi 115” trong tin trên nếu cần — Dược sĩ vẫn đang theo dõi ca của bạn.</div>`;
+    }}
+  ]);
+  setTool('khuyen_di_kham', 'Tự làm · đã hiện cảnh báo (khách đóng được)', 't-red');
+  renderEvidence();
+  return el;
+}
+
+/** Form S1–S4 chọn nhanh */
+function screeningForm(){
+  const el = document.createElement('div');
+  el.className = 'card form';
+  const picked = {...st.S};
+  el.innerHTML = `<h4>Cho mình biết nhanh về người sẽ dùng</h4>
+    <div class="sub">An toàn của thuốc phụ thuộc người dùng — 4 câu, mỗi câu 1 chạm.</div>
+    ${S_KEYS.map(k=>`<div class="frow"><div class="flabel">${S_LABEL[k]}</div><div class="chips" data-k="${k}">
+      ${S_OPTIONS[k].map(o=>`<button type="button" class="chip${picked[k]===o?' on':''}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}
+    </div></div>`).join('')}
+    <div class="quick">
+      <button type="button" class="btn primary" data-act="quick">Xác nhận nhanh: Người lớn, không mang thai, không dị ứng, không dùng thuốc/bệnh nền</button>
+      <button type="button" class="btn" data-act="send" disabled>Gửi thông tin đã chọn</button>
+    </div>`;
+  const sendBtn = el.querySelector('[data-act=send]');
+  el.querySelectorAll('.chips').forEach(g => g.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b || el.dataset.done) return;
+    g.querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    picked[g.dataset.k] = b.dataset.v;
+    sendBtn.disabled = S_KEYS.some(k=>!picked[k]);
+  }));
+  el.querySelector('[data-act=quick]').onclick = () => submitS({...QUICK_SAFE}, true);
+  sendBtn.onclick = () => submitS({...picked}, false);
+  addCard(el);
+  st.formEl = el;
+  return el;
+}
+function closeForm(){
+  if (!st.formEl) return;
+  st.formEl.dataset.done = '1';
+  st.formEl.querySelectorAll('button').forEach(b=>b.disabled=true);
+}
+
+/** Thẻ goi_y_san_pham — 1 thẻ duy nhất, đổi trạng thái theo luật cứng */
+/** moveToEnd: đưa thẻ xuống cuối hội thoại (khi trạng thái đổi sau bước sàng lọc) */
+function ensureProductCard(moveToEnd){
+  if (!st.cardEl){
+    st.cardEl = document.createElement('div');
+    addCard(st.cardEl);
+  } else if (moveToEnd && st.cardEl.parentElement){
+    chat.appendChild(st.cardEl.parentElement);
+  }
+  renderProductCard();
+}
+function renderProductCard(){
+  const el = st.cardEl; if (!el) return;
+  const s = cardState(); const p = st.product || PRODUCTS.generic;
+  el.className = 'card has-badge';
+  if (s === 'locked'){
+    el.classList.add('locked');
+    const m = missingS().map(k=>S_LABEL[k]).join(' · ');
+    el.innerHTML = `<span class="badge">③</span><h4>🔒 Gợi ý sản phẩm · Đang khóa</h4>
+      <div class="sub">Chưa chọn sản phẩm nào vì chưa rõ ai sẽ dùng thuốc.</div>
+      <div class="lockline">Đang khóa — thiếu: ${esc(m)}</div>
+      <div class="quick"><button class="btn primary" disabled title="Bổ sung đủ S1–S4 để mở">Đặt</button></div>`;
+    setTool('goi_y_san_pham', 'Khóa nút đặt · thiếu ' + missingS().join(', '), 't-amber');
+  } else if (s === 'none'){
+    el.innerHTML = `<span class="badge">③</span><h4>Gợi ý sản phẩm · Không áp dụng</h4>
+      <div class="sub">${esc(lockReason())}. Trợ lý AI không tự gợi ý sản phẩm cho trường hợp này.</div>`;
+    setTool('goi_y_san_pham', 'Không gợi ý · ' + lockReason(), 't-red');
+  } else if (s === 'open'){
+    el.innerHTML = `<h4>${esc(p.name)}</h4><div class="sub">${esc(p.note)}</div>
+      <div class="okline">Đủ S1–S4, không thuộc nhóm nhạy cảm. Cách dùng: đọc kỹ nhãn hoặc hỏi Dược sĩ — Trợ lý AI không đưa ra liều dùng.</div>
+      <div class="quick"><button class="btn primary" data-act="order">Đặt</button></div>`;
+    el.querySelector('[data-act=order]').onclick = placeOrder;
+    setTool('goi_y_san_pham', 'Tự làm + Hoàn tác · đủ S1–S4', 't-green');
+  } else if (s === 'ordered'){
+    el.innerHTML = `<span class="badge">⑤</span><h4>✔ Đã đặt: ${esc(p.name)}</h4>
+      <div class="sub">Mã đơn ${st.orderId} · bạn có thể hủy đến khi đơn được đóng gói.</div>
+      <div class="quick"><button class="btn" data-act="undo">↶ Hoàn tác / Hủy đơn</button></div>`;
+    el.querySelector('[data-act=undo]').onclick = () => {
+      st.order = 'cancelled'; renderProductCard(); sysSay(`Đơn ${st.orderId} đã được hủy — không có gì được giao.`);
+      setTool('goi_y_san_pham', 'Tự làm · khách đã hoàn tác', 't-gray'); renderEvidence();
+    };
+    setTool('goi_y_san_pham', 'Tự làm · đã đặt, còn Hoàn tác', 't-green');
+  } else if (s === 'cancelled'){
+    el.innerHTML = `<h4>Đơn ${st.orderId} đã hủy</h4><div class="sub">${esc(p.name)} — không giao.</div>`;
+  }
+  renderEvidence(); scrollChat();
+}
+function placeOrder(){
+  st.order = 'ordered'; st.orderId = 'PC-' + (++orderSeq) + '-MAU';
+  renderProductCard();
+  if (!st.consentShown){ st.consentShown = true; consentCard(); }
+}
+
+/** Thẻ luu_ghi_chu_suc_khoe — Badge ⑤ — Cần khách duyệt */
+function consentCard(){
+  const summary = [
+    st.S.S1 && ('Người dùng: ' + st.S.S1),
+    st.S.S2 && ('Mang thai/cho con bú: ' + st.S.S2),
+    st.S.S3 && st.S.S3,
+    st.S.S4 && st.S.S4
+  ].filter(Boolean).join(' · ');
+  const el = document.createElement('div');
+  el.className = 'card consent has-badge';
+  el.innerHTML = `<span class="badge">⑤</span><h4>Lưu vào hồ sơ sức khỏe?</h4>
+    <div class="sub">Nội dung sẽ lưu đúng như sau:</div>
+    <div style="margin:4px 0 2px"><i>“${esc(summary)}”</i></div>
+    <div class="sub">Bạn có đồng ý lưu tóm tắt này để lần sau dược sĩ tiện theo dõi không? Không bấm = không lưu.</div>`;
+  addCard(el);
+  setTool('luu_ghi_chu_suc_khoe', 'Cần khách đồng ý · đang hỏi', 't-amber'); renderEvidence();
+  quick(el, [
+    {label:'Đồng ý lưu', cls:'primary', onClick:()=>{
+      st.note = summary;
+      setTool('luu_ghi_chu_suc_khoe', 'Đã lưu · do khách bấm Đồng ý', 't-green'); renderEvidence();
+      const r = sysSay(`🗂 Đã lưu ghi chú sức khỏe (theo đồng ý của bạn).`);
+      quick(r, [{label:'↶ Hoàn tác (Xóa ghi chú)', onClick:()=>{
+        st.note = null; sysSay('Đã xóa ghi chú sức khỏe khỏi hồ sơ.');
+        setTool('luu_ghi_chu_suc_khoe', 'Đã xóa · khách hoàn tác', 't-gray'); renderEvidence();
+      }}]);
+    }},
+    {label:'Không lưu', onClick:()=>{
+      setTool('luu_ghi_chu_suc_khoe', 'Không lưu · khách từ chối', 't-gray'); renderEvidence();
+      sysSay('Đã ghi nhận: không lưu thông tin sức khỏe.');
+    }}
+  ]);
+}
+
+/** Thẻ từ chối ban_thuoc_ke_don — Badge ③ — Cấm, không có nút mua */
+function refuseRxCard(drug){
+  const el = document.createElement('div');
+  el.className = 'card refuse has-badge';
+  el.innerHTML = `<span class="badge">③</span><h4>⛔ Không bán thuốc kê đơn qua chat</h4>
+    <div>${esc(drug)} là <b>thuốc kê đơn</b>. Trợ lý AI không bán, không tư vấn và không gợi ý “thuốc thay thế”.
+    Bạn mang <b>đơn của bác sĩ</b> tới nhà thuốc, hoặc hỏi Dược sĩ về quy định.</div>`;
+  addCard(el);
+  quick(el, [{label:'Hỏi Dược sĩ về thuốc kê đơn', onClick:()=>{
+    routeToPharmacist('Normal', 'Hỏi quy định thuốc kê đơn', ['Yêu cầu: ' + drug + ' (thuốc kê đơn, không có đơn)', 'AI đã từ chối bán, không gợi ý thay thế'], 'Chờ tiếp nhận');
+    sysSay('Đã chuyển bạn tới hàng chờ Dược sĩ (mức Normal).'); renderEvidence();
+  }}]);
+  setTool('ban_thuoc_ke_don', 'Cấm · đã từ chối, không có nút mua', 't-red');
+  renderEvidence();
+}
+function refundNote(){
+  const r = aiSay(`Về <b>hoàn tiền</b>: mình <b>không có quyền xử lý hoàn tiền</b> ở kênh này nên không hứa được. Bạn liên hệ kênh hỗ trợ đơn hàng để được xử lý.`);
+  quick(r, [{label:'Mở kênh hỗ trợ đơn hàng', onClick:()=>toast('(Mô phỏng) Đã mở kênh hỗ trợ đơn hàng.')}]);
+}
+
+/* =====================================================================
+   6. SÀNG LỌC S1–S4 → QUYẾT ĐỊNH
+   ===================================================================== */
+async function submitS(vals, isQuick){
+  if (st.formEl && st.formEl.dataset.done) return;
+  closeForm();
+  st.S = vals; st.pending = null; st.silentStep = 0;
+  userSay(isQuick ? 'Người lớn, không mang thai, không dị ứng, không dùng thuốc/bệnh nền khác.'
+                  : S_KEYS.map(k=>vals[k]).join(' · '));
+  const why = [];
+  if (/Trẻ em/.test(vals.S1)) why.push('người dùng là trẻ em');
+  if (/trên 60/.test(vals.S1)) why.push('người dùng trên 60 tuổi');
+  if (/mang thai|cho con bú/.test(vals.S2)) why.push(vals.S2.toLowerCase());
+  if (/^Có/.test(vals.S4)) why.push('có thuốc đang dùng hoặc bệnh nền');
+  if (why.length) { st.flags.sensitive = true; st.risks.push('Nhóm nhạy cảm: ' + why.join(', ')); }
+  if (/^Có dị ứng/.test(vals.S3)) { st.flags.allergy = true; st.risks.push('Có dị ứng thuốc — cần kiểm tra thành phần'); }
+  const tok = run;
+  try{
+    if (st.flags.sensitive){
+      await aiReply(`Cảm ơn bạn. Vì <b>${esc(why.join(', '))}</b>, mình <b>không tự gợi ý sản phẩm</b> và đã chuyển Dược sĩ trực <b>ưu tiên</b> kèm tóm tắt — bạn không cần kể lại. Nếu xuất hiện ${RF_ADULT} thì đi khám/gọi 115 ngay, đừng chờ.`, tok);
+      routeToPharmacist('URGENT', 'Nhóm nhạy cảm: ' + why.join(', '), ticketLines(), 'Chờ tiếp nhận — ưu tiên');
+    } else if (st.flags.allergy){
+      await aiReply(`Cảm ơn bạn. Vì có <b>dị ứng thuốc</b>, Dược sĩ cần kiểm tra thành phần trước — mình đã chuyển bạn tới Dược sĩ trực.`, tok);
+      const t = routeToPharmacist('Normal', 'Có dị ứng thuốc — kiểm tra thành phần', ticketLines(), 'Chờ tiếp nhận');
+      cancelTransferBtn(t.id);
+    } else if (st.product){
+      await aiReply(`Cảm ơn bạn, đã đủ thông tin an toàn. Mình mở gợi ý sản phẩm bên dưới — bạn có thể hủy đơn trước khi đơn được đóng gói.`, tok);
+    } else {
+      await aiReply(`Cảm ơn bạn. Bạn cần hỗ trợ sản phẩm gì ạ?`, tok);
+    }
+    if (st.product || st.cardEl) ensureProductCard(true);
+    renderSide();
+  }catch(e){ /* stale */ }
+}
+function ticketLines(extra){
+  const l = [];
+  st.known.forEach(k => l.push(k));
+  const m = missingS(); l.push('S1–S4 còn thiếu: ' + (m.length ? m.join(', ') : 'không'));
+  if (st.risks.length) l.push('Rủi ro: ' + st.risks.join('; '));
+  if (extra) l.push(extra);
+  return l;
+}
+function cancelTransferBtn(id){
+  const r = sysSay('Đã chuyển tới hàng chờ Dược sĩ (mức Normal).');
+  quick(r, [{label:'Hủy chuyển, quay lại chat', onClick:()=>{
+    removeTicket(id); st.ticketId = null;
+    setTool('chuyen_duoc_si','Tự làm · khách đã hủy chuyển','t-gray'); renderEvidence();
+    sysSay('Đã hủy chuyển — bạn tiếp tục chat với Trợ lý AI.');
+  }}]);
+}
+
+/* =====================================================================
+   7. CÂU RED-FLAG (dùng chung cho ca #5 và ca lạ có trẻ nhỏ / nhóm nhạy cảm)
+   ===================================================================== */
+function askRedFlag(html){
+  const r = aiSay(html);
+  quick(r, [
+    {label:'Có ít nhất 1 dấu hiệu trên', cls:'danger', onClick:rfYes},
+    {label:'Chưa thấy dấu hiệu nào', onClick:rfNo}
+  ]);
+  st.pending = 'redflag';
+  setTool('khuyen_di_kham', 'Tự làm · chờ câu red-flag', 't-amber');
+  renderEvidence();
+}
+function rfYes(){
+  if (st.pending !== 'redflag') return;
+  st.pending = null; st.flags.redflag = true;
+  userSay('Có, có dấu hiệu như vậy.');
+  st.risks.push('Khách xác nhận có red-flag');
+  emergencyCard('Cần đi khám ngay', 'Hãy đưa người bệnh tới <b>cơ sở y tế gần nhất</b> hoặc <b>gọi 115 ngay</b> — đừng chờ thuốc. Dược sĩ trực đã được báo và sẽ gọi lại xác nhận.');
+  updTicket(st.ticketId, {status:'Đã cảnh báo đi khám — dược sĩ gọi lại xác nhận', flash:true});
+  renderProductCard(); renderSide();
+}
+function rfNo(){
+  if (st.pending !== 'redflag') return;
+  st.pending = null;
+  userSay('Chưa thấy dấu hiệu nào.');
+  aiSay(`Cảm ơn bạn. <b>Dược sĩ trực đang vào ca của bạn</b> (vị trí #1 hàng chờ). Trong lúc chờ, nếu xuất hiện bất kỳ dấu hiệu nào ở trên, hãy đi khám/gọi 115 ngay.`);
+  updTicket(st.ticketId, {status:'Chưa có red-flag theo khách — tiếp nhận ngay', flash:true});
+  renderSide();
+}
+function rfSilent(){
+  st.pending = null;
+  sysSay(`<span class="tchip">⏱ +60 giây</span> Khách chưa trả lời câu red-flag.`);
+  st.risks.push('Khách im lặng 60 giây — chưa loại trừ được dấu hiệu nặng');
+  emergencyCard('Chưa loại trừ được dấu hiệu nặng', 'Mình chưa nhận được trả lời của bạn. Nếu người bệnh có bất kỳ dấu hiệu nào ở trên, hãy <b>đi khám hoặc gọi 115 ngay</b>. Dược sĩ trực sẽ chủ động liên hệ bạn.');
+  updTicket(st.ticketId, {status:'Khách im lặng 60 giây — dược sĩ cần chủ động gọi/nhắn', flash:true});
+  renderSide();
+}
+
+/* =====================================================================
+   8. KỊCH BẢN DỰNG SẴN
+   ===================================================================== */
+const CASES = {
+  /* ---------- Ca #5: trẻ nôn ói 2 ngày ---------- */
+  async c5(tok){
+    userSay('Con tôi nôn ói, đi ngoài 2 ngày nay, cho tôi thuốc.');
+    st.known = ['Người dùng thuốc: trẻ nhỏ (người nhắn là phụ huynh)', 'Triệu chứng: nôn ói + tiêu chảy', 'Thời gian: 2 ngày'];
+    st.S.S2 = 'Không áp dụng (trẻ nhỏ)';
+    st.flags.sensitive = true;
+    st.risks = ['Nhóm nhạy cảm: trẻ nhỏ', 'Nguy cơ mất nước — red-flag chưa kiểm tra'];
+    // GIÂY 0: tạo phiếu URGENT trước khi AI kịp trả lời
+    routeToPharmacist('URGENT', 'Trẻ nhỏ nôn ói + tiêu chảy 2 ngày',
+      ['Đối tượng: trẻ nhỏ (chưa rõ tuổi) · người nhắn: phụ huynh', 'Triệu chứng: nôn ói, đi ngoài 2 ngày', 'S1–S4 còn thiếu: tuổi bé, dị ứng, thuốc đã dùng'],
+      'Đang hỏi red-flag');
+    setTool('chuyen_duoc_si', 'Tự làm · URGENT tạo ở giây 0', 't-red');
+    setTool('goi_y_san_pham', 'Không gợi ý · nhóm nhạy cảm → dược sĩ', 't-red');
+    renderSide();
+    const t = typing(); try { await wait(700, tok); } finally { t.remove(); }
+    askRedFlag(`${AI_INTRO} Vì bé đã nôn ói, tiêu chảy 2 ngày có nguy cơ mất nước nên mình <b>không tự gợi ý thuốc</b>, và <b>đã báo Dược sĩ trực ưu tiên</b> ca của bạn.<br><br>Bạn xem nhanh giúp mình: bé có dấu hiệu nào sau đây không — <b>${RF_CHILD}</b>?`);
+  },
+
+  /* ---------- Ca #7: khách gắt ép ship ---------- */
+  async c7(tok){
+    userSay('Ship đơn thuốc cảm tới 12 đường Mẫu, Quận 5 giúp mình.');
+    st.product = PRODUCTS.cam;
+    st.known = ['Yêu cầu: thuốc cảm, giao tận nơi'];
+    renderSide();
+    await aiReply(`${AI_INTRO} Để chọn đúng thuốc cảm, bạn cho mình biết nhanh về <b>người sẽ uống</b> nhé:`, tok);
+    screeningForm();
+    ensureProductCard();
+    st.pending = 'screen';
+    await wait(1500, tok);
+    userSay('Ai uống cũng được, cứ ship đi, đừng hỏi nữa!');
+    st.known.push('Khách từ chối sàng lọc, đang vội');
+    st.risks.push('Khách ép bỏ qua sàng lọc');
+    renderEvidence();
+    const t = typing(); try { await wait(650, tok); } finally { t.remove(); }
+    angryReply();
+  },
+
+  /* ---------- Ca #4: kháng sinh không đơn + hoàn tiền ---------- */
+  async c4(tok){
+    userSay('Bán cho 1 vỉ kháng sinh Augmentin 1g giao tới địa chỉ X, sẵn hoàn tiền đơn Y giúp mình.');
+    st.flags.rx = true;
+    st.known = ['Yêu cầu 1: kháng sinh Augmentin 1g (thuốc kê đơn), không nhắc tới đơn thuốc', 'Yêu cầu 2: hoàn tiền đơn Y'];
+    st.risks = ['Thuốc kê đơn không có đơn → Cấm', 'Hoàn tiền: không có tool trong phạm vi AI'];
+    renderSide();
+    await aiReply(`${AI_INTRO} Tin của bạn có <b>2 yêu cầu</b>, mình trả lời từng phần nhé.`, tok);
+    refuseRxCard('Kháng sinh Augmentin');
+    await wait(500, tok);
+    refundNote();
+    renderSide();
+  },
+
+  /* ---------- Ca #9: mua C sủi ---------- */
+  async c9(tok){
+    userSay('Cho mình hộp C sủi bổ sung vitamin C nhé.');
+    st.product = PRODUCTS.vitc;
+    st.known = ['Yêu cầu: viên sủi vitamin C (thực phẩm bổ sung)'];
+    setTool('chuyen_duoc_si', 'Tự làm · không cần (ca thường)', 't-gray');
+    renderSide();
+    await aiReply(`${AI_INTRO} Mình hỗ trợ được ngay. Bạn xác nhận nhanh người sẽ dùng giúp mình (1 chạm):`, tok);
+    screeningForm();
+    ensureProductCard();
+    st.pending = 'screen';
+  }
+};
+
+/** Câu trả lời khi khách gắt / ép bỏ sàng lọc (ca #7 + ca lạ) */
+function angryReply(){
+  const why = st.product === PRODUCTS.cam
+    ? 'Thuốc cảm có hoạt chất không dùng được cho trẻ nhỏ, phụ nữ mang thai hoặc người huyết áp cao'
+    : 'Nhiều sản phẩm không phù hợp với trẻ nhỏ, phụ nữ mang thai hoặc người có bệnh nền';
+  const r = aiSay(`Mình hiểu bạn đang cần gấp. ${why}, nên <b>mình chưa thể gợi ý sản phẩm khi chưa rõ người dùng</b>. Bạn có 2 cách nhanh: bấm <b>Gặp Dược sĩ trực ngay</b>, hoặc nếu người uống là người lớn khỏe mạnh thì bấm nút xác nhận nhanh bên dưới (1 chạm) để mình hỗ trợ tiếp nhé.`);
+  quick(r, [
+    {label:'Chuyển Dược sĩ trực ngay', onClick:()=>{
+      closeForm(); st.pending = null;
+      userSay('Cho mình gặp dược sĩ.');
+      const t = routeToPharmacist('Normal', st.product ? 'Yêu cầu ' + st.product.name.split(' — ')[0].toLowerCase() : 'Yêu cầu sản phẩm',
+        ticketLines('Ghi chú: khách đang vội, đã từ chối sàng lọc — đừng hỏi lại từ đầu'), 'Chờ tiếp nhận');
+      cancelTransferBtn(t.id); renderSide();
+    }},
+    {label:'Xác nhận nhanh: Người lớn, không mang thai, không dị ứng, không dùng thuốc/bệnh nền khác', cls:'primary', onClick:()=>submitS({...QUICK_SAFE}, true)},
+    {label:'Khác…', cls:'ghost', keep:true, onClick:()=>{ if (st.formEl && !st.formEl.dataset.done){ st.formEl.scrollIntoView({behavior:'smooth',block:'center'}); } else { screeningForm(); } }}
+  ]);
+  st.pending = 'angry';
+  renderSide();
+}
+
+/* =====================================================================
+   9. MÔ PHỎNG KHÁCH IM LẶNG
+   ===================================================================== */
+function simulateSilence(){
+  if (st.pending === 'redflag') return rfSilent();
+  if (st.pending === 'angry' || st.pending === 'screen'){
+    const steps = [2,4,8]; const m = steps[st.silentStep++];
+    if (m === 2) sysSay(`<span class="tchip">⏱ +2 phút</span>`), aiSay('Bạn còn đó không? Chỉ cần 1 chạm “Xác nhận nhanh” hoặc gặp Dược sĩ trực là mình hỗ trợ tiếp được ngay.');
+    else if (m === 4) sysSay(`<span class="tchip">⏱ +4 phút</span>`), aiSay('Mình vẫn giữ phiên cho bạn. Vì an toàn, mình chưa thể gợi ý thuốc khi chưa rõ người dùng.');
+    else if (m === 8){
+      sysSay(`<span class="tchip">⏱ +8 phút</span> Phiên tạm đóng vì chưa hoàn tất sàng lọc. Bạn nhắn lại bất cứ lúc nào.`);
+      closeForm(); st.pending = null;
+      addTicket({level:'LOG', title:'Khách rời hội thoại khi chưa hoàn tất sàng lọc',
+        lines:[...st.known, 'Đã nhắc 3 lần (2 → 4 → 8 phút)', 'Không có đơn nào được tạo'], status:'Đã ghi log — dược sĩ quyết định có nhắn lại không', mine:true, flash:true});
+      setTool('chuyen_duoc_si', 'Tự làm · đã gửi log cho dược sĩ', 't-blue');
+      renderSide();
+    }
+    return;
+  }
+  toast('Không có bước nào đang chờ khách trả lời.');
+}
+
+/* =====================================================================
+   10. CA LẠ: PHÂN LOẠI Ô NHẬP TỰ DO (luật từ khóa + AI tùy chọn)
+   ===================================================================== */
+const RX_WORDS = ['kháng sinh','augmentin','amoxicillin','amoxicilin','cefuroxim','cephalexin','azithromycin','ciprofloxacin','levofloxacin','thuốc huyết áp','amlodipin','losartan','corticoid','prednisolon','medrol','dexamethason','insulin','thuốc ngủ','seduxen','tramadol','codein'];
+const RF_WORDS = ['khó thở','đau ngực','tức ngực','yếu nửa người','yếu một bên','liệt','méo miệng','nói ngọng','co giật','li bì','lừ đừ','lơ mơ','ngất','phân máu','phân có máu','đi ngoài ra máu','nôn ra máu','sốt cao','sốt 40','sốt 39','tím tái','không uống được','mắt trũng','khóc không ra nước mắt','đau đầu dữ dội','cứng cổ','co rút','bất tỉnh','đau bụng dữ dội'];
+const SYMPTOMS = [['nôn','nôn ói'],['ói','nôn ói'],['tiêu chảy','tiêu chảy'],['đi ngoài','tiêu chảy'],['sốt','sốt'],['ho','ho'],['sổ mũi','sổ mũi'],['nghẹt mũi','nghẹt mũi'],['bị cảm','cảm'],['họng','đau họng'],['ngứa','ngứa'],['đau đầu','đau đầu'],['đau bụng','đau bụng'],['mẩn','mẩn đỏ'],['phát ban','phát ban']];
+
+function ruleClassify(text){
+  const t = ' ' + text.toLowerCase().normalize('NFC') + ' ';
+  const has = re => re.test(t);
+  const c = {who:null, whyS:[], red:[], rx:null, refund:false, inventory:false, angry:false, prolonged:false, diag:false, dose:false, symptoms:[], duration:null, product:null};
+  // Đối tượng
+  const age = t.match(/(\d{1,3})\s*(tuổi)/); const months = /\d+\s*tháng tuổi/.test(t);
+  // Mang thai xét trước: "bầu… ảnh hưởng em bé" là người mẹ dùng thuốc, không phải trẻ nhỏ
+  if (has(/bầu|mang thai|có thai|cho con bú/)) c.who = 'pregnant';
+  else if (months || has(/con tôi|con mình|con em|con nhà|bé|cháu|trẻ/)) c.who = 'child';
+  if (age && c.who !== 'pregnant'){ const a = +age[1]; if (a < 16) c.who = 'child'; else if (a >= 60) c.who = 'elder'; }
+  if (!c.who && has(/\s(bố|mẹ|ông|bà|ba|má)\s|người già|cao tuổi/)) c.who = 'elder';
+  if (has(/bầu|mang thai|có thai|cho con bú/) && c.who !== 'pregnant') c.whyS.push('mang thai/cho con bú');
+  if (has(/huyết áp|tiểu đường|đái tháo đường|bệnh tim|tim mạch|hen suyễn|suy thận|bệnh gan|arv|hiv|ung thư|động kinh/)) c.whyS.push('có bệnh nền / thuốc điều trị dài ngày');
+  // Red-flag
+  RF_WORDS.forEach(w => { if (t.includes(w)) c.red.push(w); });
+  // Thuốc kê đơn
+  const rx = RX_WORDS.find(w => t.includes(w)); if (rx) c.rx = rx;
+  c.refund = has(/hoàn tiền|trả hàng|đổi trả/);
+  c.inventory = has(/còn hàng|tồn kho|chi nhánh|cửa hàng gần|gần mình|gần nhà|gần đây/);
+  c.angry = has(/cứ ship|đừng hỏi|ai cũng được|ai uống cũng được|hỏi nhiều|nhanh lên|lắm chuyện/);
+  c.diag = has(/bị làm sao|bị bệnh gì|bị gì|có phải bị|là bệnh gì/);
+  c.dose = has(/liều|mấy viên|bao nhiêu viên|mấy lần|uống bao nhiêu/);
+  // Kéo dài / đã tự dùng
+  // (không tính "tháng" để "bầu 3 tháng" không bị hiểu là triệu chứng kéo dài)
+  const d = t.match(/(\d+)\s*(ngày|hôm|tuần)/);
+  if (d){ c.duration = d[1] + ' ' + d[2]; if (d[2] === 'tuần' || +d[1] >= 3) c.prolonged = true; }
+  if (has(/không đỡ|không khỏi|không hạ|mạnh hơn|uống .* rồi/)) c.prolonged = true;
+  // Triệu chứng — so khớp nguyên từ để "ho" không dính "cho", "ói" không dính "nói"
+  SYMPTOMS.forEach(([k,v]) => {
+    if (new RegExp('[\\s,.!?;:]' + k + '[\\s,.!?;:]').test(t) && !c.symptoms.includes(v)) c.symptoms.push(v);
+  });
+  // Sản phẩm
+  if (has(/vitamin c|c sủi|vitamin/)) c.product = 'vitc';
+  else if (has(/nước muối/)) c.product = 'saline';
+  else if (has(/khẩu trang/)) c.product = 'mask';
+  else if (has(/họng/)) c.product = 'hong';
+  else if (has(/bị cảm|thuốc cảm|cảm cúm|cảm lạnh|sổ mũi|nghẹt mũi/)) c.product = 'cam';
+  else if (c.symptoms.length || has(/thuốc|mua|ship|đặt/)) c.product = 'generic';
+  return c;
+}
+
+const AI_PROMPT = `Bạn là bộ PHÂN LOẠI RỦI RO cho kênh chat hỏi thuốc của một chuỗi nhà thuốc ở Việt Nam.
+KHÔNG trả lời khách, KHÔNG chẩn đoán, KHÔNG nêu liều, KHÔNG gợi ý thuốc. Chỉ đọc tin nhắn và trả về DUY NHẤT một JSON:
+{
+ "doi_tuong": "nguoi_lon" | "tre_nho" | "nguoi_cao_tuoi" | "mang_thai_cho_con_bu" | "chua_ro",
+ "nhom_nhay_cam": boolean,          // trẻ nhỏ, người cao tuổi, mang thai/cho con bú, bệnh mạn tính, đang dùng thuốc kê đơn
+ "red_flag": [string],              // dấu hiệu cần cấp cứu thấy trong tin (khó thở, đau ngực, yếu nửa người, li bì, co giật, phân máu, mất nước nặng...). Rỗng nếu không có
+ "ke_don": boolean,                 // khách đòi thuốc kê đơn (kháng sinh, thuốc huyết áp, corticoid...)
+ "keo_dai_da_tu_dung": boolean,     // triệu chứng >= 3 ngày hoặc đã tự dùng thuốc không đỡ
+ "trieu_chung": [string],
+ "S_con_thieu": ["S1"|"S2"|"S3"|"S4"],  // S1 người dùng & tuổi, S2 mang thai/cho con bú, S3 dị ứng, S4 thuốc đang dùng & bệnh nền
+ "ly_do": string                    // 1 câu ngắn
+}
+Khi nghi ngờ, chọn phương án AN TOÀN hơn (đánh dấu nhạy cảm/red-flag).`;
+
+function aiEnabled(){ return $('#aiOn').checked && !!sessionStorage.getItem('t1_ai_key'); }
+
+async function callAI(text){
+  const prov = $('#aiProv').value, model = $('#aiModel').value.trim();
+  const key = sessionStorage.getItem('t1_ai_key');
+  const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 15000);
+  const started = Date.now();
+  try{
+    let raw;
+    if (prov === 'gemini'){
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method:'POST', signal:ctrl.signal,
+        headers:{'Content-Type':'application/json','x-goog-api-key':key},
+        body:JSON.stringify({
+          systemInstruction:{parts:[{text:AI_PROMPT}]},
+          contents:[{role:'user',parts:[{text}]}],
+          generationConfig:{responseMimeType:'application/json',temperature:0}
+        })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + (await res.text()).slice(0,200));
+      const j = await res.json(); raw = j?.candidates?.[0]?.content?.parts?.[0]?.text;
+    } else {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method:'POST', signal:ctrl.signal,
+        headers:{'Content-Type':'application/json','Authorization':'Bearer ' + key},
+        body:JSON.stringify({model, response_format:{type:'json_object'},
+          messages:[{role:'system',content:AI_PROMPT},{role:'user',content:text}]})
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + (await res.text()).slice(0,200));
+      const j = await res.json(); raw = j?.choices?.[0]?.message?.content;
+    }
+    const parsed = JSON.parse(String(raw).replace(/^```json\s*|```\s*$/g,''));
+    const entry = {time:new Date().toISOString(), provider:prov, model, latency_ms:Date.now()-started, input:text, output:parsed};
+    aiLog.push(entry); renderAiLog();
+    return parsed;
+  } catch(e){
+    aiLog.push({time:new Date().toISOString(), provider:prov, model, input:text, error:String(e.message||e)}); renderAiLog();
+    throw e;
+  } finally { clearTimeout(timer); }
+}
+/** Gộp: bên nào cảnh báo thì nghe bên đó. AI chỉ THÊM cờ rủi ro, không bao giờ gỡ cờ hay điền S1–S4. */
+function mergeAI(c, ai){
+  const added = [];
+  if (!ai) return added;
+  const map = {tre_nho:'child', nguoi_cao_tuoi:'elder', mang_thai_cho_con_bu:'pregnant'};
+  if (!c.who && map[ai.doi_tuong]){ c.who = map[ai.doi_tuong]; added.push('đối tượng: ' + ai.doi_tuong); }
+  if (ai.nhom_nhay_cam && !c.who && !c.whyS.length){ c.whyS.push('AI đánh dấu nhóm nhạy cảm'); added.push('nhóm nhạy cảm'); }
+  (ai.red_flag||[]).forEach(r => { if (r && !c.red.includes(r)){ c.red.push(r); added.push('red-flag: ' + r); } });
+  if (ai.ke_don && !c.rx){ c.rx = 'thuốc kê đơn'; added.push('thuốc kê đơn'); }
+  if (ai.keo_dai_da_tu_dung && !c.prolonged){ c.prolonged = true; added.push('kéo dài/đã tự dùng'); }
+  (ai.trieu_chung||[]).forEach(s => { if (s && !c.symptoms.includes(s)) c.symptoms.push(s); });
+  return added;
+}
+
+const WHO_LABEL = {child:'trẻ nhỏ', elder:'người cao tuổi', pregnant:'người đang mang thai / cho con bú'};
+
+async function onFreeText(text){
+  if (!st.caseId){ st.caseId = 'free'; markCase(null); }
+  // Đang ở form sàng lọc mà khách gõ chữ → coi như tin mới, vẫn qua bộ phân loại
+  userSay(text);
+  const tok = run;
+  const t = typing();
+  const c = ruleClassify(text);
+  let added = [], usedAI = false, aiFail = false;
+  if (aiEnabled()){
+    try { const ai = await callAI(text); usedAI = true; added = mergeAI(c, ai); }
+    catch(e){ aiFail = true; }
+  } else await sleep(450);
+  t.remove();
+  if (tok !== run) return;
+  st.source = usedAI ? `Luật từ khóa + AI thật (${$('#aiModel').value})` + (added.length ? ' — AI thêm cờ: ' + added.join(', ') : ' — AI không thêm cờ mới')
+            : aiFail ? 'Luật từ khóa (AI lỗi/hết giờ → tự dùng dự phòng)' : 'Luật từ khóa';
+  if (aiFail) toast('Lời gọi AI lỗi — đã tự dùng luật từ khóa.');
+  routeFree(c, text, tok);
+}
+
+function routeFree(c, text, tok){
+  // --- Cập nhật bằng chứng ---
+  if (c.who) st.known.push('Người dùng thuốc: ' + WHO_LABEL[c.who]);
+  if (c.symptoms.length) st.known.push('Triệu chứng: ' + c.symptoms.join(', '));
+  if (c.duration) st.known.push('Thời gian: ' + c.duration);
+  if (c.product && !st.product) { st.product = PRODUCTS[c.product]; st.known.push('Yêu cầu: ' + PRODUCTS[c.product].name.split(' — ')[0]); }
+  if (c.who === 'child' || c.who === 'elder' || c.who === 'pregnant' || c.whyS.length || c.prolonged){
+    st.flags.sensitive = true;
+    st.risks.push('Nhóm nhạy cảm: ' + [c.who && WHO_LABEL[c.who], ...c.whyS, c.prolonged && 'triệu chứng kéo dài / đã tự dùng thuốc'].filter(Boolean).join(', '));
+  }
+  if (c.who === 'child') st.S.S2 = st.S.S2 || 'Không áp dụng (trẻ nhỏ)';
+  if (c.red.length){ st.flags.redflag = true; st.risks.push('Red-flag: ' + c.red.join(', ')); }
+  if (c.rx){ st.flags.rx = true; st.risks.push('Thuốc kê đơn: ' + c.rx); }
+  renderSide();
+
+  const extra = [];
+  if (c.diag) extra.push('Mình <b>không chẩn đoán bệnh</b> được.');
+  if (c.dose) extra.push('Mình <b>không đưa ra liều dùng</b> — Dược sĩ sẽ hướng dẫn, hoặc bạn đọc kỹ nhãn.');
+  const pre = extra.length ? extra.join(' ') + ' ' : '';
+
+  // 1) RED-FLAG → khuyen_di_kham ngay + URGENT
+  if (c.red.length){
+    aiSay(`${AI_INTRO} ${pre}Tin nhắn có <b>dấu hiệu cần cấp cứu</b> (${esc(c.red.join(', '))}). Mình không tự gợi ý thuốc. Hãy đưa người bệnh tới cơ sở y tế gần nhất hoặc <b>gọi 115 ngay</b> — đừng chờ.`);
+    emergencyCard('Đi khám / gọi 115 ngay', `Dấu hiệu phát hiện: <b>${esc(c.red.join(', '))}</b>. Đây là tình huống không nên chờ tư vấn qua chat. Dược sĩ trực đã được báo mức URGENT.`);
+    routeToPharmacist('URGENT', 'Red-flag: ' + c.red.join(', '), ticketLines('Tin gốc: “' + text + '”'), 'Đã cảnh báo đi khám — dược sĩ gọi lại xác nhận');
+    if (c.rx) refuseRxCard(c.rx);
+    if (c.refund) refundNote();
+    if (st.product) ensureProductCard();
+    return renderSide();
+  }
+  // 2) THUỐC KÊ ĐƠN → Cấm
+  if (c.rx){
+    aiSay(`${AI_INTRO} ${pre}` + (c.refund ? 'Tin của bạn có <b>2 yêu cầu</b>, mình trả lời từng phần nhé.' : ''));
+    refuseRxCard(c.rx.charAt(0).toUpperCase() + c.rx.slice(1));
+    if (c.refund) refundNote();
+    return renderSide();
+  }
+  // 3) Nhóm nhạy cảm / kéo dài
+  if (st.flags.sensitive && (c.who || c.whyS.length || c.prolonged)){
+    if (c.prolonged){
+      routeToPharmacist('URGENT', 'Triệu chứng kéo dài / đã tự dùng thuốc', ticketLines('Tin gốc: “' + text + '”'), 'Chờ tiếp nhận — ưu tiên');
+      aiSay(`${AI_INTRO} ${pre}Triệu chứng đã kéo dài hoặc đã tự dùng thuốc mà không đỡ, nên mình <b>không gợi ý thêm thuốc hay “loại mạnh hơn”</b>. Mình đã chuyển Dược sĩ trực ưu tiên kèm tóm tắt.`);
+      emergencyCard('Nên đi khám để tìm nguyên nhân', 'Triệu chứng kéo dài/đã tự dùng thuốc nhiều ngày không đỡ cần được khám trực tiếp. Nếu có khó thở, lơ mơ, sốt cao không hạ → gọi 115 ngay.');
+      if (st.product) ensureProductCard();
+      return renderSide();
+    }
+    const who = c.who ? WHO_LABEL[c.who] : c.whyS.join(', ');
+    routeToPharmacist('URGENT', 'Nhóm nhạy cảm: ' + who, ticketLines('Tin gốc: “' + text + '”'), 'Đang hỏi red-flag');
+    if (st.product) ensureProductCard();
+    askRedFlag(`${AI_INTRO} ${pre}Vì người dùng thuốc là <b>${esc(who)}</b>, mình <b>không tự gợi ý thuốc</b> và <b>đã báo Dược sĩ trực ưu tiên</b>.<br><br>Bạn xem nhanh giúp mình: có dấu hiệu nào sau đây không — <b>${c.who==='child' ? RF_CHILD : RF_ADULT}</b>?`);
+    return renderSide();
+  }
+  // 4) Hỏi tồn kho → không có tool, không bịa (lỗi hệ thống tiềm ẩn ①)
+  if (c.inventory){
+    const r = aiSay(`${AI_INTRO} Xin lỗi, mình <b>không tra được tồn kho từng chi nhánh</b> ở kênh này nên không thể khẳng định còn hàng. Bạn xem mục “Tìm nhà thuốc” trên web/app, hoặc gặp nhân viên hỗ trợ để được kiểm tra.`);
+    quick(r, [{label:'Gặp nhân viên hỗ trợ', onClick:()=>{ const t = routeToPharmacist('Normal','Hỏi tồn kho chi nhánh', ticketLines('Tin gốc: “' + text + '”'),'Chờ tiếp nhận'); cancelTransferBtn(t.id); renderSide(); }}]);
+    if (c.refund) refundNote();
+    return renderSide();
+  }
+  if (c.refund && !c.product){ refundNote(); return renderSide(); }
+  // 5) Khách gắt khi chưa đủ S1–S4
+  if (c.angry && missingS().length){
+    st.risks.push('Khách ép bỏ qua sàng lọc'); renderEvidence();
+    angryReply();
+    if (st.product) ensureProductCard();
+    return;
+  }
+  // 6) Yêu cầu thường → đủ S thì mở, chưa đủ thì hỏi form + thẻ khóa
+  if (st.product){
+    if (missingS().length){
+      aiSay(`${AI_INTRO} ${pre}Để gợi ý đúng, bạn cho mình biết nhanh về <b>người sẽ dùng</b> nhé:`);
+      if (!st.formEl || st.formEl.dataset.done) screeningForm();
+      ensureProductCard();
+      st.pending = 'screen';
+    } else {
+      aiSay(`${pre}Đã đủ thông tin an toàn, mình cập nhật gợi ý bên dưới.`);
+      ensureProductCard();
+    }
+    return renderSide();
+  }
+  aiSay(`${AI_INTRO} ${pre}Bạn cần hỗ trợ sản phẩm gì, và ai sẽ là người dùng ạ?`);
+  renderSide();
+}
+
+/* =====================================================================
+   11. ĐIỀU KHIỂN
+   ===================================================================== */
+function resetAll(){
+  run++;
+  st = freshState(); queue = sampleQueue();
+  chat.innerHTML = '';
+  aiSay(`Xin chào! ${AI_INTRO} Mình hỗ trợ sàng lọc ban đầu và chuyển bạn tới Dược sĩ khi cần — mình <b>không chẩn đoán, không kê đơn và không nói liều dùng</b>.`);
+  markCase(null);
+  renderSide();
+}
+function markCase(id){ document.querySelectorAll('#caseBtns [data-case]').forEach(b => b.classList.toggle('active', b.dataset.case === id)); }
+function startCase(id){
+  resetAll();
+  st.caseId = id; markCase(id);
+  const tok = run;
+  CASES[id](tok).catch(()=>{});
+}
+
+document.querySelectorAll('#caseBtns [data-case]').forEach(b => b.onclick = () => startCase(b.dataset.case));
+$('#resetBtn').onclick = resetAll;
+$('#annotChk').onchange = e => document.body.classList.toggle('annot', e.target.checked);
+$('#silentBtn').onclick = simulateSilence;
+$('#sendForm').onsubmit = e => {
+  e.preventDefault();
+  const v = $('#msgInput').value.trim(); if (!v) return;
+  $('#msgInput').value = '';
+  onFreeText(v);
+};
+
+/* ---------- AI settings ---------- */
+const DEFAULT_MODEL = {gemini:'gemini-2.5-flash', openai:'gpt-4o-mini'};
+function safeSS(fn){ try { return fn(); } catch(e){ return null; } }
+function refreshKeyState(){
+  const has = !!safeSS(()=>sessionStorage.getItem('t1_ai_key'));
+  $('#keyState').textContent = has ? '🔑 Đã có key trong phiên này' : 'Chưa có key';
+  $('#modeHint').innerHTML = 'Phân loại ô nhập tự do: <b>' + (aiEnabled() ? 'Luật từ khóa + AI thật' : 'Luật từ khóa') + '</b>';
+}
+$('#aiProv').onchange = e => { $('#aiModel').value = DEFAULT_MODEL[e.target.value]; };
+$('#saveKey').onclick = () => {
+  const k = $('#aiKey').value.trim(); if (!k) return toast('Chưa nhập key.');
+  safeSS(()=>sessionStorage.setItem('t1_ai_key', k)); $('#aiKey').value = ''; $('#aiOn').checked = true; refreshKeyState(); toast('Đã lưu key trong sessionStorage (mất khi đóng tab).');
+};
+$('#clearKey').onclick = () => { safeSS(()=>sessionStorage.removeItem('t1_ai_key')); $('#aiOn').checked = false; refreshKeyState(); };
+$('#aiOn').onchange = refreshKeyState;
+function renderAiLog(){ $('#aiLogView').textContent = aiLog.length ? JSON.stringify(aiLog.slice(-3), null, 2) : '(Chưa có lời gọi AI nào)'; }
+$('#dlLog').onclick = () => {
+  if (!aiLog.length) return toast('Chưa có lời gọi AI nào để tải.');
+  const blob = new Blob([JSON.stringify({note:'Log lời gọi AI phân loại rủi ro — không chứa API key', calls:aiLog}, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ai-call-log.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+};
+
+resetAll();
+refreshKeyState();
+</script>
+</body>
+</html>
