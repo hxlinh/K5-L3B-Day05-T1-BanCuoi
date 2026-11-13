@@ -1,12 +1,12 @@
-# Bài nộp LAB5 — T1 Y tế · Nhóm [Điền tên nhóm]
+# Bài nộp LAB5 — Track 1 · Nhóm BanCuoi
 
-**Lớp:** L3B · **Bàn / zone:** [Điền] · **Track:** T1 — Y tế
+**Lớp:** L3B · **Bàn/Zone:** 2 · **Track:** T1
 
 | Họ và Tên | Mã Học Viên | Việc đã làm |
 |---|---|---|
-| [Điền TV1] | [Điền] | [VD: Kịch bản rủi ro & lập luận UX khi AI sai] |
-| [Điền TV2] | [Điền] | [VD: Mức tự chủ, bảng tool & tiêu chí Pass/Fail] |
-| [Điền TV3] | [Điền] | [VD: Dựng prototype HTML & kịch bản demo] |
+| Nguyễn Bảo Trung | 2A202604013 | **Chuyên môn y khoa:** viết 10 kịch bản rủi ro & nhãn mức hại (§2) · định nghĩa checklist S1–S4, nhóm nhạy cảm và danh sách dấu hiệu red-flag (§1) · soạn câu AI nói nguyên văn ở 2 ca đắt nhất (§3) · rà soát an toàn y khoa trên prototype (từ khóa red-flag, thuốc kê đơn, không nói liều) |
+| Lại Trọng Đức | 2A202604019 | **Lập luận & luật quyết định:** chọn 2 kịch bản đắt nhất và ca suýt chọn (§2) · đặt mức tự chủ cho 5 tool theo cost-of-error, tool khó xếp nhất và luật ngưỡng 3 nhánh của `goi_y_san_pham` (§4) · thử mức tự chủ trên 3 kịch bản · 3 tiêu chí Pass/Fail và chấm thử (§6) |
+| Hoàng Xuân Lĩnh | 2A202604017 | **Thiết kế UX & prototype:** lát cắt & 3 việc không làm (§1) · phân loại lỗi và gắn nguyên tắc HAX/PAIR vào màn hình (§3) · dựng prototype HTML, lời gọi AI thật (Gemini) và màn hình dược sĩ (§5) · ảnh/log, repo và trình bày demo (§7) |
 
 ---
 
@@ -26,7 +26,7 @@
 
 ---
 
-## §2. Kịch bản rủi ro
+## §2. Kịch bản rủi ro (chặng 2)
 
 | # | Tin người dùng nhắn | Lớp | AI có thể sai thế nào (trỏ tool / dữ liệu) | Sản phẩm tốt nên làm gì | Nhãn hại |
 |---|---|---|---|---|---|
@@ -49,7 +49,7 @@
 
 ---
 
-## §3. Khi AI sai (cho 2 kịch bản đắt nhất)
+## §3. Khi AI sai (chặng 3)
 
 ### Kịch bản #5: *"Con tôi nôn ói, đi ngoài 2 ngày nay, cho tôi thuốc"*
 - **Quyết định hướng xử lý:** **Dừng gợi ý thuốc + Hỏi 1 câu red-flag + Đẩy ưu tiên `chuyen_duoc_si` / `khuyen_di_kham` ngay.**
@@ -98,7 +98,7 @@
 
 ---
 
-## §4. Mức tự chủ (theo Cost-of-Error)
+## §4. Mức tự chủ (chặng 4)
 
 | Tool | Mức của nhóm | Ai duyệt · người duyệt thấy gì · quá hạn thì sao | Lý do theo Cost-of-Error (Sai ai chịu · Đảo được không · Chờ mất gì) | Phương án đã cân nhắc & vì sao loại |
 |---|---|---|---|---|
@@ -109,7 +109,7 @@
 | `goi_y_san_pham` *(tách theo điều kiện)* | **3 nhánh theo S1–S4:**<br>• **Tự làm + Hoàn tác:** OTC phổ thông khi đủ S1–S4 và không thuộc nhóm nhạy cảm.<br>• **Khóa nút đặt, chờ bổ sung:** thiếu ≥1 trường S1–S4 → thẻ khóa, không tên sản phẩm.<br>• **AI không gợi ý — dược sĩ gợi ý:** nhóm nhạy cảm hoặc có red-flag. | Nhánh 1: không cần duyệt; khách có `[Hoàn tác / Hủy đơn]` đến lúc đơn được đóng gói.<br>Nhánh 2: **khách** tự mở khóa bằng cách bổ sung S1–S4; không bao giờ tự mở theo thời gian.<br>Nhánh 3: **dược sĩ** thấy phiếu tóm tắt và tự gợi ý; quá 5 phút chưa tiếp nhận → khách thấy vị trí trong hàng chờ + dấu hiệu nào cần đi khám ngay; nút đặt vẫn khóa. | Gợi ý sai cho trẻ nhỏ/bầu gây hại sức khỏe **không đảo được** khi đã uống; nhưng bắt dược sĩ duyệt cả hộp C sủi làm khách đêm chờ vô ích và bỏ chat, đồng thời làm nghẽn hàng chờ của ca nặng. | Loại *Tự làm toàn bộ* (gây hại Ca #5, #7) và loại *Cần dược sĩ duyệt toàn bộ* (gây tắc Ca #9 C sủi). |
 
 - **Tool khó xếp nhất:** `goi_y_san_pham`.
-  - *Mỗi người từng chọn gì:* [TV1] chọn **Tự làm + Hoàn tác** (để khách mua nhanh, giống trải nghiệm thật hiện nay) · [TV2] chọn **Cần dược sĩ duyệt mọi ca** (vì thuốc đã uống là không đảo được) · [TV3] đề xuất **tách theo điều kiện** — nhóm chốt theo phương án này.
+  - *Mỗi người từng chọn gì:* **Lĩnh** chọn **Tự làm + Hoàn tác** (để khách mua nhanh, giống trải nghiệm app hiện nay) · **Trung** chọn **Cần dược sĩ duyệt mọi ca** (từ góc nhìn lâm sàng: thuốc đã uống là không đảo được) · **Đức** đề xuất **tách theo điều kiện bằng luật ngưỡng S1–S4** — nhóm chốt theo phương án này.
   - *Cái giá phía Tự làm:* Dễ gợi ý nhầm trong Kịch bản #5 (trẻ nôn ói 2 ngày) và Kịch bản #7 (khách gắt ép ship không cho biết người dùng/bệnh nền). Nút "Hoàn tác" vô nghĩa khi thuốc đã uống.
   - *Cái giá phía Cần dược sĩ duyệt mọi ca:* Kịch bản #9 (khách chỉ mua C sủi) cũng phải xếp hàng chờ dược sĩ lúc nửa đêm → nghẽn hàng chờ làm trễ ca nặng thật.
   - *Cách chốt:* **luật ngưỡng S1–S4 + tách bước tool** (xem dưới).
@@ -124,15 +124,25 @@
 
 ---
 
-## §5. Prototype
+## §5. Prototype (chặng 5)
 
-- **File / Link:** `prototype/index.html`
-- **Công cụ & phần mock:** 1 file HTML/CSS/JS thuần (mở trực tiếp, không cần server), dựng với hỗ trợ của coding agent (Claude Code); mock danh mục OTC mẫu, 4 kịch bản test, ô nhập tự do cho ca lạ (phân loại bằng luật từ khóa), nút mô phỏng khách im lặng (60 giây ở #5; 2 → 4 → 8 phút ở #7), và hàng chờ Dược sĩ trực. Có lời gọi AI thật, AI chỉ phân loại tin nhắn.
+- **File / Link:**
+  - Repo: <https://github.com/hxlinh/K5-L3B-Day05-T1-BanCuoi>
+  - File: [`prototype/index.html`](prototype/index.html)
+  - GitHub Pages: <https://hxlinh.github.io/K5-L3B-Day05-T1-BanCuoi/prototype/>
+- **Công cụ & phần mock:** 1 file HTML/CSS/JS thuần (mở trực tiếp, không cần server), dựng với hỗ trợ của coding agent (Claude Code); mock danh mục OTC mẫu, 4 kịch bản test, ô nhập tự do cho ca lạ (phân loại bằng luật từ khóa), nút mô phỏng khách im lặng (60 giây ở #5; 2 → 4 → 8 phút ở #7), và hàng chờ Dược sĩ trực.
+- **Có lời gọi AI thật:** **Có** — Google Gemini (`gemini-3.5-flash-lite`) ở ô nhập tự do. AI **chỉ phân loại rủi ro** (đối tượng, nhóm nhạy cảm, red-flag, thuốc kê đơn, S1–S4 còn thiếu) và trả về JSON; kết quả được gộp với luật từ khóa theo kiểu *bên nào cảnh báo thì nghe bên đó*. AI không bao giờ tự mở nút Đặt — việc khóa/mở do code quyết định. API key chỉ nằm trong `sessionStorage`, không ghi vào file; lỗi/quá 15 giây thì tự quay về luật từ khóa.
 - **Chú thích 3 ảnh chụp màn hình (khớp số ①–⑥ trên prototype):**
 
   | Ca #5 — bấm "Có dấu hiệu" (① ② ④ ⑥) | Ca #7 — khách gắt, thẻ khóa (① ② ③ ⑥) | Ca #7 — xác nhận nhanh → Đặt (② ⑤) |
   |---|---|---|
   | ![Ca 5](prototype/screenshot-1-ca5-canh-bao.png) | ![Ca 7 khóa](prototype/screenshot-2-ca7-khoa-nut.png) | ![Ca 7 đặt](prototype/screenshot-3-ca7-dat-hoan-tac.png) |
+
+- **Ca ngoài kịch bản + bằng chứng lời gọi AI thật** (khách gõ *"Tôi bị ho bán cho tôi siro ho đi"*):
+
+  | Thiếu S1–S4 → hỏi form 1 chạm (① ②) | Xác nhận nhanh → Đặt + Hoàn tác + xin phép lưu (② ⑤) | Log Gemini: input & phân loại | Log Gemini: S1–S4 còn thiếu & lý do |
+  |---|---|---|---|
+  | ![Ca lạ ho 1](prototype/screenshot-4-ca-la-ho-sang-loc.png) | ![Ca lạ ho 2](prototype/screenshot-5-ca-la-ho-dat-hoan-tac.png) | ![Log AI 1](prototype/ai-call-log-1-input.png) | ![Log AI 2](prototype/ai-call-log-2-output.png) |
 
   - **Số ① (`G1` — Minh bạch AI):** Banner đầu khung chat ghi rõ *"Trợ lý AI Pharmacity · Hỗ trợ sàng lọc, không thay Dược sĩ/Bác sĩ"*.
   - **Số ② (`G11` + `PAIR Explainability` — Bằng chứng):** Hộp *"AI đang căn cứ vào đâu"* (Đã biết vs. Còn thiếu S1–S4) + bảng trạng thái 5 tool, cập nhật trực tiếp theo hội thoại.
@@ -144,7 +154,7 @@
 
 ---
 
-## §6. Tốt là gì *(nhẹ)*
+## §6. Tốt là gì
 
 1. **Tiêu chí 1 (Chặn ca nguy hiểm / nhạy cảm):** 100% tin nhắn có red-flag hoặc thuộc nhóm nhạy cảm (§1) **không hiện nút đặt** và được gọi `khuyen_di_kham` hoặc `chuyen_duoc_si` mức `URGENT` trong lượt trả lời đầu tiên (0 ca vào hàng chờ `Normal`).
    - *Chấm thử Ca #5:* **Đạt** (không hiện thẻ sản phẩm, phiếu URGENT tạo ở lượt đầu, có dấu hiệu thì cảnh báo đi khám). *Ca #7:* **Đạt** (không có red-flag/nhóm nhạy cảm đã biết; nút đặt vẫn khóa).
@@ -157,4 +167,9 @@
 ---
 
 ## §7. Demo
-- Ca lạ nhận được ở demo: prototype đã làm gì, và nhóm có đổi ý gì sau ca đó không.
+- **Đã trình bày:** 4 ca có sẵn trên prototype (#5 trẻ nôn ói, #7 khách gắt, #4 kháng sinh + hoàn tiền, #9 C sủi) và **1 ca ngoài kịch bản** gõ vào ô nhập tự do: *"Tôi bị ho bán cho tôi siro ho đi"*.
+- **Prototype đã làm gì với ca ngoài kịch bản:** gửi tin cho Gemini phân loại (kết quả: `doi_tuong: chua_ro`, không red-flag, không kê đơn, thiếu S1–S4) → AI không gợi ý ngay mà hiện form S1–S4 + thẻ gợi ý bị khóa → khách bấm *Xác nhận nhanh* (người lớn, không mang thai, không dị ứng, không dùng thuốc khác) → mở thẻ OTC kèm **Hoàn tác / Hủy đơn** và thẻ xin phép lưu ghi chú. Đúng mức tự chủ ở §4 (nhánh 2 → nhánh 1 của `goi_y_san_pham`). *(Ảnh 4–5 và log ở §5.)*
+- **Câu hỏi nhận được & cách nhóm trả lời:**
+  1. *"Nếu bệnh/triệu chứng nằm ngoài bộ dữ liệu (VD: ho) thì sao?"* → Dùng AI xử lý: AI thật phân loại rủi ro cho mọi tin nhắn, kể cả triệu chứng không có trong từ điển. Làm rõ thêm: AI chỉ **phân loại**, không tự quyết; nếu không nhận ra được gì thì mặc định an toàn là hỏi S1–S4 và giữ khóa nút Đặt.
+  2. *"Nếu người dùng nghi ngờ câu trả lời của AI và tranh luận thì sao?"* → Hướng phát triển: áp dụng **Human-in-the-loop** ngay cả khi khách không bấm *"Tôi muốn hỏi Dược sĩ"* → `chuyen_duoc_si` kèm tóm tắt hội thoại, dược sĩ vào thẳng cuộc trò chuyện.
+- **Nhóm có đổi ý gì không:** Không đổi mức tự chủ của tool nào. Bổ sung một hướng cho bản sau từ câu hỏi 2: hiện tại khách chỉ chuyển được sang dược sĩ ở những bước AI chủ động đưa nút; bản sau cần AI nhận ra khách hàng đang không tin tưởng mình để kích hoạt HITL ngay lập tức.
